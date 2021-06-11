@@ -59,7 +59,13 @@ fn main() -> Result<()> {
                         gs.move_player(0, 1)
                     },
                     KeyCode::Char('l') => {                         // Look command : [l]
-                        look()?
+                        if !(gs.looking) {
+                            gs.looking = true;
+                            look()?
+                        } else {
+                            gs.looking = false;
+                            clean_environment()?
+                        }
                     }
                     KeyCode::Esc => {                               // Exit command : [esc]
                         execute!(stdout(),
@@ -71,9 +77,6 @@ fn main() -> Result<()> {
                 },
                 _ => {}
             }
-            // while event::poll(Duration::from_millis(0)).unwrap() {
-            //     event::read();
-            // }
         } else {
             // Timeout expired and no `Event` is available
         };
@@ -136,7 +139,7 @@ fn refresh_screen(screen_state_already_displayed: ScreenState, screen_state_to_d
 fn clean_environment() -> Result<()> {
 
     execute!(stdout(), SetForegroundColor(GROUND_CLR))?;
-    let empty_strip: String = " ".repeat(N_HEIGHT as usize);
+    let empty_strip: String = " ".repeat(64usize);
     for j in 1..(SCREEN_HEIGHT-1) {
         execute!(stdout(), cursor::MoveTo(N_WIDTH+2, j))?;
         execute!(stdout(),
@@ -148,12 +151,66 @@ fn clean_environment() -> Result<()> {
 
 fn look() -> Result<()> {
 
-    clean_environment()?;
+    clean_environment()?;   // Displaying squares on environment screen
     execute!(stdout(),
-        cursor::MoveTo(N_WIDTH+2+10,1+4),
         SetForegroundColor(Color::White),
-        Print('\u{250C}'.to_string())
+
+        cursor::MoveTo(N_WIDTH+2+15, 1+4),
+        Print('\u{250C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10, 1+4),
+        Print('\u{252C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10, 1+4),
+        Print('\u{252C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10+1+10, 1+4),
+        Print('\u{2510}'.to_string()),
+
+        cursor::MoveTo(N_WIDTH+2+15, 1+4+1+4),
+        Print('\u{251C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10, 1+4+1+4),
+        Print('\u{253C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10, 1+4+1+4),
+        Print('\u{253C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10+1+10, 1+4+1+4),
+        Print('\u{2524}'.to_string()),
+
+        cursor::MoveTo(N_WIDTH+2+15, 1+4+1+4+1+4),
+        Print('\u{251C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10, 1+4+1+4+1+4),
+        Print('\u{253C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10, 1+4+1+4+1+4),
+        Print('\u{253C}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10+1+10, 1+4+1+4+1+4),
+        Print('\u{2524}'.to_string()),
+
+        cursor::MoveTo(N_WIDTH+2+15, 1+4+1+4+1+4+1+4),
+        Print('\u{2514}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10, 1+4+1+4+1+4+1+4),
+        Print('\u{2534}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10, 1+4+1+4+1+4+1+4),
+        Print('\u{2534}'.to_string()),
+        cursor::MoveTo(N_WIDTH+2+15+1+10+1+10+1+10, 1+4+1+4+1+4+1+4),
+        Print('\u{2518}'.to_string()),
     )?;
+    for l in 0..4 {
+        for k in 0..3 {
+            execute!(stdout(), cursor::MoveTo(N_WIDTH+2+15+1 + k*(10+1), 1+4+l*(1+4)))?;
+            for _ in 0..10 {
+                execute!(stdout(),
+                    Print('\u{2500}'.to_string())
+                )?
+            }
+        }
+    };
+    for k in 0..4 {
+        for l in 0..3 {
+            for j in 0..4 {
+                execute!(stdout(),
+                    cursor::MoveTo(N_WIDTH+2+15 + k*(1+10), 1+4+1+l*(4+1) + j),
+                    Print('\u{2502}'.to_string())
+                )?
+            }
+        }
+    };
 
     Ok(())
 }

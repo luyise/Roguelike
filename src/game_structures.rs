@@ -25,23 +25,28 @@ impl Player {
 pub struct NonPlayerCharacter {
     pos: Point,
     sprite: char,
+    info: [String; 4]
 }
 
 pub struct Obstacle {
     pos: Point,
     sprite: char,
+    info: [String; 4]
 }
 impl Obstacle {
     pub fn new(i: u16, j: u16) -> Obstacle {
         Obstacle {
             pos: Point { x: i, y: j },
-            sprite: '\u{25A0}'
+            sprite: '\u{25A0}',
+            info: [String::new(), String::new(), String::new(), String::new()]
+            // info: vec!["A U+25A0  ", "character ", "that seems", "to have   ", arrived there by mistake"]
         }   
     }
 }
 
 pub struct Ground {
-    pos: Point
+    pos: Point,
+    info: [String; 4]
 }
 
 pub enum Entity {
@@ -74,6 +79,14 @@ impl Entity {
             Entity::Ground(grd) => &grd.pos
         }
     }
+
+    pub fn get_info(&self) -> &[String; 4] {
+        match self {
+            Entity::NonPlayerCharacter(npc) => &npc.info,
+            Entity::Obstacle(obs) => &obs.info,
+            Entity::Ground(grd) => &grd.info
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -84,14 +97,16 @@ pub struct ScreenState {
 pub struct GameState {
     pub player: Player,
     pub entities: Vec<Entity>,
-    pub screen_pos: Point
+    pub screen_pos: Point,
+    pub looking: bool
 }
 impl GameState {
     pub fn new() -> GameState { 
         GameState {
             player: Player::new(),
             entities: Vec::new(),
-            screen_pos: Point{ x: 0, y: 0 }
+            screen_pos: Point{ x: 0, y: 0 },
+            looking: false
         }
     }
 
