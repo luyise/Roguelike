@@ -1,6 +1,10 @@
+#![feature(concat_idents)]
+
+
 pub mod colors;
 pub mod game_structures;
 pub mod options;
+pub mod graphics;
 
 use colors::*;
 use game_structures::*;
