@@ -9,35 +9,46 @@ use crossterm::style::Color;
 use std::convert::TryInto;
 
 pub struct Point {
-    pub x: u16,
-    pub y: u16,
+    pub x: i16,
+    pub y: i16,
 }
 
 pub struct NonPlayerCharacter {
     pos: Point,
     sprite: char,
-    info: [String; 4],
+    info: [String; 9],                  // /!\ Une information se déclare dans un tableau de 9 lignes, chacune d'au plus 20 charactère /!\ \\
 }
 
 pub struct Obstacle {
     pos: Point,
     sprite: char,
-    info: [String; 4],
+    info: [String; 9],
 }
 
 impl Obstacle {
     pub fn new(i: u16, j: u16) -> Obstacle {
         Obstacle {
-            pos: Point { x: i, y: j },
+            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
             sprite: '\u{25A0}',
-            info: [String::new(), String::new(), String::new(), String::new()], // info: vec!["A U+25A0  ", "character ", "that seems", "to have   ", arrived there by mistake"]
+            info: 
+                [
+                    String::from(" A U+25A0 character "),
+                    String::from("that seems to have  "),
+                    String::from("arrived there by    "),
+                    String::from("mistake             "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    ")
+                ]
         }
     }
 }
 
 pub struct Ground {
     pos: Point,
-    info: [String; 4],
+    info: [String; 9],
 }
 
 pub enum Entity {
@@ -71,11 +82,27 @@ impl Entity {
         }
     }
 
-    pub fn get_info(&self) -> &[String; 4] {
+    pub fn get_info(&self) -> &[String; 9] {
         match self {
             Entity::NonPlayerCharacter(npc) => &npc.info,
             Entity::Obstacle(obs) => &obs.info,
             Entity::Ground(grd) => &grd.info,
+        }
+    }
+}
+
+pub struct GameModifications {
+    pub screen_changed: [[bool; N_HEIGHT as usize]; N_WIDTH as usize],
+    pub looking_changed: bool,
+    pub moved_while_looking: bool
+}
+
+impl GameModifications {
+    pub fn new() -> GameModifications {
+        GameModifications {
+            screen_changed: [[true; N_HEIGHT as usize]; N_WIDTH as usize],
+            looking_changed: false,
+            moved_while_looking: false
         }
     }
 }
@@ -90,6 +117,8 @@ pub struct GameState {
     pub entities: Vec<Entity>,
     pub screen_pos: Point,
     pub looking: bool,
+
+    pub modifications: GameModifications
 }
 
 impl GameState {
@@ -99,6 +128,8 @@ impl GameState {
             entities: Vec::new(),
             screen_pos: Point { x: 0, y: 0 },
             looking: false,
+
+            modifications: GameModifications::new()
         }
     }
 
@@ -109,9 +140,9 @@ impl GameState {
             let pos = entity.get_pos();
             // On regarde si l'entié est située dans l'écran de jeu
             if self.screen_pos.x <= pos.x
-                && pos.x < self.screen_pos.x + SCREEN_WIDTH
+                && pos.x < self.screen_pos.x + (SCREEN_WIDTH as i16)
                 && self.screen_pos.y <= pos.y
-                && pos.y < self.screen_pos.y + SCREEN_WIDTH
+                && pos.y < self.screen_pos.y + (SCREEN_WIDTH as i16)
             {
                 grid[(pos.x - self.screen_pos.x) as usize][(pos.y - self.screen_pos.y) as usize] =
                     (entity.get_char(), entity.get_clr())
@@ -121,6 +152,10 @@ impl GameState {
             [(self.player.pos.y - self.screen_pos.y) as usize] = (self.player.sprite, PLAYER_CLR);
 
         ScreenState { grid: grid }
+    }
+
+    pub fn refresh_modifications(&mut self) {
+        self.modifications = GameModifications::new()
     }
 
     pub fn move_player(&mut self, dx: i16, dy: i16) {
@@ -143,16 +178,20 @@ impl GameState {
         // Si le joueur pousse contre le bord de l'écran, on scroll si c'est possible.
         if (3 <= nx && nx - 3 < self.screen_pos.x.try_into().unwrap())
             || (nx + 3 < MAP_WIDTH.try_into().unwrap()
-                && nx + 3 >= (self.screen_pos.x + N_WIDTH).try_into().unwrap())
+                && nx + 3 >= (self.screen_pos.x + N_WIDTH as i16).try_into().unwrap())
             || (3 <= ny && ny - 3 < self.screen_pos.y.try_into().unwrap())
             || (ny + 3 < MAP_WIDTH.try_into().unwrap()
-                && ny + 3 >= (self.screen_pos.y + N_HEIGHT).try_into().unwrap())
+                && ny + 3 >= (self.screen_pos.y + N_HEIGHT as i16).try_into().unwrap())
         {
             self.screen_pos.x = (self.screen_pos.x as i16 + dx).try_into().unwrap();
             self.screen_pos.y = (self.screen_pos.y as i16 + dy).try_into().unwrap()
         };
 
         self.player.pos.x = nx.try_into().unwrap();
-        self.player.pos.y = ny.try_into().unwrap()
+        self.player.pos.y = ny.try_into().unwrap();
+
+        if self.looking {
+            self.modifications.moved_while_looking = true
+        }
     }
 }

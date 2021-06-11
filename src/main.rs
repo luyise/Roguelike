@@ -8,6 +8,7 @@ use options::*;
 
 use std::io::stdout;
 use std::time::Duration;
+use std::convert::TryInto;
 
 use crossterm::event::{Event, KeyCode};
 use crossterm::style::{Color, Print, SetBackgroundColor, SetForegroundColor};
@@ -15,6 +16,7 @@ use crossterm::terminal::ClearType;
 use crossterm::{cursor, event, execute, terminal, Result};
 
 fn main() -> Result<()> {
+
     let mut gs = GameState::new();
     let mut screen_state = gs.make_screen_state();
 
@@ -37,8 +39,9 @@ fn main() -> Result<()> {
     print_screen(&screen_state)?;
 
     'running: loop {
-        // O. Make a screenshot of the last displayed screen
+        // O. keeping track of what needs to be refreshed at display time // will be replaced by the "modifications" entry of struct GameState
         let old_screen_state = screen_state;
+        gs.refresh_modifications();
 
         //  I. Handle events
         if event::poll(Duration::from_millis(500)).unwrap() {
@@ -56,17 +59,17 @@ fn main() -> Result<()> {
                     KeyCode::Char('l') => {
                         if !(gs.looking) {
                             gs.looking = true;
-                            look()?
+                            gs.modifications.looking_changed = true
                         } else {
                             gs.looking = false;
-                            clean_environment()?
+                            gs.modifications.looking_changed = true
                         }
                     }
 
                     // Exit command : [esc]
                     KeyCode::Esc => {
                         execute!(stdout(), cursor::Show, terminal::Clear(ClearType::All))?;
-                        break 'running;
+                        break 'running
                     }
                     _ => {}
                 },
@@ -78,6 +81,16 @@ fn main() -> Result<()> {
 
         // II. Update
         screen_state = gs.make_screen_state();
+        if gs.modifications.looking_changed {
+            if gs.looking {
+                disp_look_cases()?;
+                disp_look_info(&gs)?
+            } else {
+                clean_environment()?
+            }
+        } else if gs.modifications.moved_while_looking {
+            disp_look_info(&gs)?
+        };
 
         // III. Render
         refresh_screen(old_screen_state, &screen_state)?;
@@ -150,8 +163,7 @@ fn refresh_screen(
 }
 
 fn clean_environment() -> Result<()> {
-    execute!(stdout(), SetForegroundColor(GROUND_CLR))?;
-    let empty_strip: String = " ".repeat(64usize);
+    let empty_strip: String = " ".repeat(94usize);
     for j in 1..(SCREEN_HEIGHT - 1) {
         execute!(stdout(), cursor::MoveTo(N_WIDTH + 2, j))?;
         execute!(stdout(), Print(&empty_strip))?
@@ -159,50 +171,89 @@ fn clean_environment() -> Result<()> {
     Ok(())
 }
 
-fn look() -> Result<()> {
+fn disp_look_info(gs: &GameState) -> Result<()> {
+
+    let empty_strip: String = " ".repeat(20usize);
+
+    // On affiche les informations relatives à chaque case adjacente au personnage
+    for i in (-1)..=1 as i16 {
+        for j in (-1)..=1 as i16 {
+
+            for l in 0..9 {
+                execute!(
+                    stdout(),
+                    cursor::MoveTo((N_WIDTH as i16 + 2 + 15 + 1 + (i+1) * (20 + 1)).try_into().unwrap(), (1 + 3 + 1 + (j+1) * (9 + 1) + l).try_into().unwrap()),
+                    Print(&empty_strip)
+                )?
+            };
+
+            let x: i16 = gs.player.pos.x + i;
+            let y: i16 = gs.player.pos.y + j;
+            if x >= 0 && x < MAP_WIDTH.try_into().unwrap() && y >= 0 && y < MAP_WIDTH.try_into().unwrap() {
+                match get_entity(gs, x, y) {
+                    Some(e) => {
+                        for l in 0..9 {
+                            execute!(
+                                stdout(),
+                                cursor::MoveTo((N_WIDTH as i16 + 2 + 15 + 1 + (i+1) * (20 + 1)).try_into().unwrap(), (1 + 3 + 1 + (j+1) * (9 + 1) + l).try_into().unwrap()),
+                                Print(&e.get_info()[l as usize])
+                            )?
+                        };
+                    }
+                    None => {}
+                }
+
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn disp_look_cases() -> Result<()> {
     clean_environment()?; // Displaying squares on environment screen
     execute!(
         stdout(),
         SetForegroundColor(Color::White),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3),
         Print('\u{250C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10, 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3),
         Print('\u{252C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10, 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3),
         Print('\u{252C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10 + 1 + 10, 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20, 1 + 3),
         Print('\u{2510}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9),
         Print('\u{251C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10, 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9),
         Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10, 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9),
         Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10 + 1 + 10, 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9),
         Print('\u{2524}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 4 + 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9 + 1 + 9),
         Print('\u{251C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10, 1 + 4 + 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9),
         Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10, 1 + 4 + 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9),
         Print('\u{253C}'.to_string()),
         cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10 + 1 + 10,
-            1 + 4 + 1 + 4 + 1 + 4
+            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20,
+            1 + 3 + 1 + 9 + 1 + 9
         ),
         Print('\u{2524}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 4 + 1 + 4 + 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9 + 1 + 9 + 1 + 9),
         Print('\u{2514}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 10, 1 + 4 + 1 + 4 + 1 + 4 + 1 + 4),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9 + 1 + 9),
         Print('\u{2534}'.to_string()),
         cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10,
-            1 + 4 + 1 + 4 + 1 + 4 + 1 + 4
+            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20,
+            1 + 3 + 1 + 9 + 1 + 9 + 1 + 9
         ),
         Print('\u{2534}'.to_string()),
         cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 10 + 1 + 10 + 1 + 10,
-            1 + 4 + 1 + 4 + 1 + 4 + 1 + 4
+            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20,
+            1 + 3 + 1 + 9 + 1 + 9 + 1 + 9
         ),
         Print('\u{2518}'.to_string()),
     )?;
@@ -210,26 +261,39 @@ fn look() -> Result<()> {
         for k in 0..3 {
             execute!(
                 stdout(),
-                cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + k * (10 + 1), 1 + 4 + l * (1 + 4))
+                cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + k * (20 + 1), 1 + 3 + l * (1 + 9))
             )?;
-            for _ in 0..10 {
+            for _ in 0..20 {
                 execute!(stdout(), Print('\u{2500}'.to_string()))?
             }
         }
-    }
+    };
     for k in 0..4 {
         for l in 0..3 {
-            for j in 0..4 {
+            for j in 0..9 {
                 execute!(
                     stdout(),
-                    cursor::MoveTo(N_WIDTH + 2 + 15 + k * (1 + 10), 1 + 4 + 1 + l * (4 + 1) + j),
+                    cursor::MoveTo(N_WIDTH + 2 + 15 + k * (1 + 20), 1 + 3 + 1 + l * (9 + 1) + j),
                     Print('\u{2502}'.to_string())
                 )?
             }
         }
-    }
+    };
 
     Ok(())
+}
+
+fn get_entity(gs: &GameState, x: i16, y: i16) -> Option<&Entity> {
+    if 0 <= x && x < MAP_WIDTH.try_into().unwrap() && 0 <= y && y < SCREEN_HEIGHT.try_into().unwrap() {
+        for e in gs.entities.iter() {
+            let e_pos = e.get_pos();
+            if e_pos.x == x && e_pos.y == y {
+                return Some(&e)
+            }
+        }
+    };
+
+    return None
 }
 
 fn print_screen_background() -> Result<()> {
