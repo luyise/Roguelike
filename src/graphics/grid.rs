@@ -48,7 +48,7 @@ impl Grid {
         if x1 == x2 {
             if !self.map.is_empty() && self.map[0].len() > x1 {
                 if self.map.len() > y1 && self.map.len() > y2 {
-                    for y in min(y1, y2)..max(y1, y2) {
+                    for y in min(y1, y2)..=max(y1, y2) {
                         self.map[y][x1] = index;
                     }
                     Ok(())
@@ -62,7 +62,7 @@ impl Grid {
             if y1 == y2 {
                 if self.map.len() > y1 {
                     if self.map[0].len() > x1 && self.map[0].len() > x2 {
-                        for x in min(x1, x2)..max(y1, y2) {
+                        for x in min(x1, x2)..=max(x1, x2) {
                             self.map[y1][x] = index;
                         }
                         Ok(())

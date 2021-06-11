@@ -1,6 +1,6 @@
 pub const NSEW: char = '\u{253C}'; // ┼   box drawings light vertical and horizontal
 
-pub const NS_W: char = '\u{2503}'; // ┤
+pub const NS_W: char = '\u{2524}'; // ┤
 pub const NSE_: char = '\u{251C}'; // ├   box drawings light vertical and right
 pub const N_EW: char = '\u{2534}'; // ┴   box drawings light up and horizontal
 pub const _SEW: char = '\u{252C}'; // ┬   box drawings light down and horizontal

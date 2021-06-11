@@ -212,75 +212,21 @@ fn disp_look_info(gs: &GameState) -> Result<()> {
 }
 
 fn disp_look_cases() -> Result<()> {
+    let mut grid =  graphics::grid::Grid::new(3 * 20 + 4, 3 * 9 + 4);
+    for i in 0..=3 {
+        grid.draw_line(0, 10 * i, 63, 10 * i, 1).unwrap();
+        grid.draw_line(21 * i, 0, 21 * i, 30, 1).unwrap();
+    }
     clean_environment()?; // Displaying squares on environment screen
-    execute!(
-        stdout(),
-        SetForegroundColor(Color::White),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3),
-        Print('\u{250C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3),
-        Print('\u{252C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3),
-        Print('\u{252C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20, 1 + 3),
-        Print('\u{2510}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9),
-        Print('\u{251C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9),
-        Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9),
-        Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9),
-        Print('\u{2524}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9 + 1 + 9),
-        Print('\u{251C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9),
-        Print('\u{253C}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9),
-        Print('\u{253C}'.to_string()),
-        cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20,
-            1 + 3 + 1 + 9 + 1 + 9
-        ),
-        Print('\u{2524}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15, 1 + 3 + 1 + 9 + 1 + 9 + 1 + 9),
-        Print('\u{2514}'.to_string()),
-        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 20, 1 + 3 + 1 + 9 + 1 + 9 + 1 + 9),
-        Print('\u{2534}'.to_string()),
-        cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20,
-            1 + 3 + 1 + 9 + 1 + 9 + 1 + 9
-        ),
-        Print('\u{2534}'.to_string()),
-        cursor::MoveTo(
-            N_WIDTH + 2 + 15 + 1 + 20 + 1 + 20 + 1 + 20,
-            1 + 3 + 1 + 9 + 1 + 9 + 1 + 9
-        ),
-        Print('\u{2518}'.to_string()),
-    )?;
-    for l in 0..4 {
-        for k in 0..3 {
-            execute!(
-                stdout(),
-                cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + k * (20 + 1), 1 + 3 + l * (1 + 9))
-            )?;
-            for _ in 0..20 {
-                execute!(stdout(), Print('\u{2500}'.to_string()))?
-            }
-        }
-    };
-    for k in 0..4 {
-        for l in 0..3 {
-            for j in 0..9 {
-                execute!(
-                    stdout(),
-                    cursor::MoveTo(N_WIDTH + 2 + 15 + k * (1 + 20), 1 + 3 + 1 + l * (9 + 1) + j),
-                    Print('\u{2502}'.to_string())
-                )?
-            }
-        }
-    };
-
+    let s = grid.to_string(graphics::grid::GridStyle::Single);
+    for (i, line) in s.iter().enumerate() {
+        execute!(
+            stdout(),
+            SetForegroundColor(Color::White),
+            cursor::MoveTo(N_WIDTH + 2 + 15, 4 + i as u16),
+            Print(line)
+        );
+    }
     Ok(())
 }
 
@@ -298,6 +244,29 @@ fn get_entity(gs: &GameState, x: i16, y: i16) -> Option<&Entity> {
 }
 
 fn print_screen_background() -> Result<()> {
+    let sw = SCREEN_WIDTH as usize;
+    let sh = SCREEN_HEIGHT as usize;
+    let mut grid = graphics::grid::Grid::new(sw, sh);
+    grid.draw_line(0, 0, sw - 1, 0, 1).unwrap();
+    grid.draw_line(0, sh - 1, sw - 1, sh - 1, 1).unwrap();
+    grid.draw_line(0, 0, 0, sh - 1, 1).unwrap();
+    grid.draw_line(sw - 1, 0, sw - 1, sh - 1, 1).unwrap();
+
+    grid.draw_line(2 + N_WIDTH as usize, 0, 2 + N_WIDTH as usize, sh - 1, 1).unwrap();
+    grid.draw_line(0, 1 + N_HEIGHT as usize, 1 + N_WIDTH as usize, 1 + N_HEIGHT as usize, 1).unwrap();
+    let s = grid.to_string(graphics::grid::GridStyle::Double);
+    execute!(
+        stdout(),
+        SetForegroundColor(SCREEN_BOUNDARIES_CLR),
+    );
+    for (y, line) in s.iter().enumerate() {
+        execute!(
+            stdout(),
+            cursor::MoveTo(0, y as u16),
+            Print(line),
+        );
+    }
+    /*
     // Making Screen Boundaries
     execute!(
         stdout(), // Coin Haut-gauche
@@ -371,7 +340,7 @@ fn print_screen_background() -> Result<()> {
     for _ in (N_WIDTH + 2)..(SCREEN_WIDTH - 1) {
         execute!(stdout(), Print('\u{2550}'.to_string()),)?
     }
-    execute!(stdout(), Print('\u{255D}'.to_string()),)?;
+    execute!(stdout(), Print('\u{255D}'.to_string()),)?;*/
 
     Ok(())
 }
