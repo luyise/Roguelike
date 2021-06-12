@@ -1,7 +1,7 @@
-use super::super::colors::*;
+use crate::colors::*;
 use super::Point;
 use std::convert::TryInto;
-use super::super::graphics::chars::*;
+use crate::graphics::chars::*;
 use crossterm::style::Color;
 
 pub struct Obstacle {

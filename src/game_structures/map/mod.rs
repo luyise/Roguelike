@@ -1,4 +1,5 @@
 use std::boxed::Box;
+use crossterm::style::Color;
 
 pub mod floor;
 pub mod door;
@@ -11,6 +12,8 @@ pub trait MapElement {
     fn interact_long(&mut self);
 
     fn get_char(&self) -> char;
+
+    fn get_color(&self) -> Color;
 
     fn get_info(&self) -> [String; 9];
 }

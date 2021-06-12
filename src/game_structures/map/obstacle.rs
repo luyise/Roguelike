@@ -11,7 +11,7 @@ pub struct Floor {
 impl Floor {
     pub fn new() -> Self {
         Self {
-            sprite: ' '
+            sprite: '\u{25A0}'
         }
     }
 }
@@ -30,18 +30,24 @@ impl MapElement for Floor {
     }
 
     fn get_char(&self) -> char {
-        self.sprite
+        self.image
     }
 
     fn get_color(&self) -> Color {
-        BACKGROUND_CLR
+        OBSTACLES_CLR
     }
 
     fn get_info(&self) -> [String; 9] {
         [
-            String::new(), String::new(), String::new(),
-            String::new(), String::new(), String::new(),
-            String::new(), String::new(), String::new()
+            String::from(" A U+25A0 character "),
+            String::from("that seems to have  "),
+            String::from("arrived there by    "),
+            String::from("mistake.            "),
+            String::from("                    "),
+            String::from("                    "),
+            String::from("                    "),
+            String::from("                    "),
+            String::from("                    ")
         ]
     }
 }

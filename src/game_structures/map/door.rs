@@ -1,24 +1,26 @@
+use crossterm::style::Color;
 use super::MapElement;
+use crate::colors::*;
 
 
 #[derive(Debug, Copy, Clone)]
 pub struct Door {
     opened: bool,
-    image: char,
+    sprite: char,
 }
 
 impl Door {
     pub fn vertical() -> Self {
         Self {
             opened: false,
-            image: '|',
+            sprite: '|',
         }
     }
 
     pub fn horizontal() -> Self {
         Self {
             opened: false,
-            image: '-',
+            sprite: '-',
         }
     }
 }
@@ -40,16 +42,26 @@ impl MapElement for Door {
         if self.opened {
             ' '
         } else {
-            self.image
+            self.sprite
         }
+    }
+
+    fn get_color(&self) -> Color {
+        DOORS_CLR
     }
 
     fn get_info(&self) -> [String; 9] {
         if self.opened {
             [
-                String::new(), String::new(), String::new(),
-                String::new(), String::new(), String::new(),
-                String::new(), String::new(), String::new()
+                String::from(" An opened door,    "),
+                String::from("don't catch a cold! "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    ")
             ]
         } else {
             [
