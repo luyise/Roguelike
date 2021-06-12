@@ -7,7 +7,7 @@ pub struct Player {
 impl Player {
     pub fn new() -> Player {
         Player {
-            pos: Point { x: 0, y: 0 },
+            pos: Point { x: 4, y: 5 },
             sprite: '@',
         }
     }

@@ -115,9 +115,9 @@ impl GameState {
             let pos = entity.get_pos();
             // On regarde si l'entié est située dans l'écran de jeu
             if self.screen_pos.x <= pos.x
-                && pos.x < self.screen_pos.x + (SCREEN_WIDTH as i16)
+                && pos.x < self.screen_pos.x + (N_WIDTH as i16)
                 && self.screen_pos.y <= pos.y
-                && pos.y < self.screen_pos.y + (SCREEN_WIDTH as i16)
+                && pos.y < self.screen_pos.y + (N_HEIGHT as i16)
             {
                 grid[(pos.x - self.screen_pos.x) as usize][(pos.y - self.screen_pos.y) as usize] =
                     (entity.get_char(), entity.get_clr())

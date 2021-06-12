@@ -25,7 +25,19 @@ fn main() -> Result<()> {
     // - test, j'ajoute des obstacles
     gs.entities.push(Entity::Obstacle(Obstacle::single(10, 10)));
     gs.entities.push(Entity::Obstacle(Obstacle::single(10, 11)));
-    gs.entities.push(Entity::Obstacle(Obstacle::single(14, 20)));
+
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("_SE_", 2, 2)));
+    for i in 3..14 {
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 2)));
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)));
+    }
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 14, 2)));
+    for j in 3..30 {
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 14, j)));
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)));
+    }
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 14, 30)));
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
     // -
 
     let (_cols, _rows) = terminal::size()?;
