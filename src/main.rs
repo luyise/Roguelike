@@ -91,14 +91,14 @@ fn main() -> Result<()> {
                         }
                     }
 
-                    KeyCode::Char('p') => {
-                        gs.interact(1, -1);
+                    KeyCode::Char('i') => {
+                        gs.interact(-1, -1);
                     },
-                    KeyCode::Char('m') => {
-                        gs.interact(1, 0);
+                    KeyCode::Char('k') => {
+                        gs.interact(-1, 0);
                     },
                     KeyCode::Char(';') => {
-                        gs.interact(1, -1);
+                        gs.interact(-1, 1);
                     },
 
                     KeyCode::Char('o') => {
