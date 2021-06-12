@@ -8,6 +8,7 @@ use game_structures::*;
 use game_structures::obstacles::Obstacle;
 use options::*;
 
+use std::boxed::Box;
 use std::io::stdout;
 use std::time::Duration;
 use std::convert::TryInto;
@@ -19,7 +20,11 @@ use crossterm::{cursor, event, execute, terminal, Result};
 
 fn main() -> Result<()> {
 
-    let mut gs = GameState::new();
+
+    let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
+    map.set_element(24, 10, Box::new(map::door::Door::vertical()));
+
+    let mut gs = GameState::new(map);
     let mut screen_state = gs.make_screen_state();
 
     // - test, j'ajoute des obstacles
@@ -42,7 +47,7 @@ fn main() -> Result<()> {
     gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
 
     // and a door
-    gs.entities.push(Entity::Obstacle(Obstacle::door("VERT", 24, 10)));
+   // gs.entities.push(Entity::Obstacle(Obstacle::door("VERT", 24, 10)));
     // -
 
     let (_cols, _rows) = terminal::size()?;
@@ -85,6 +90,18 @@ fn main() -> Result<()> {
                             gs.modifications.looking_changed = true
                         }
                     }
+
+                    KeyCode::Char('p') => gs.interact(1, -1),
+                    KeyCode::Char('m') => gs.interact(1, 0),
+                    KeyCode::Char(';') => gs.interact(1, -1),
+
+                    KeyCode::Char('o') => gs.interact(0, -1),
+                    KeyCode::Char(':') => gs.interact(0, 1),
+
+                    KeyCode::Char('p') => gs.interact(1, -1),
+                    KeyCode::Char('m') => gs.interact(1, 0),
+                    KeyCode::Char('=') | KeyCode::Char('!') => gs.interact(1, 1),
+
 
                     // Exit command : [esc]
                     KeyCode::Esc => {

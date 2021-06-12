@@ -1,5 +1,5 @@
 mod player;
-mod map;
+pub mod map;
 pub mod obstacles;
 
 use player::*;
