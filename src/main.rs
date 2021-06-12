@@ -34,8 +34,9 @@ fn main() -> Result<()> {
         terminal::SetSize(SCREEN_WIDTH, SCREEN_HEIGHT),
         terminal::Clear(ClearType::All),
         cursor::Hide,
-        terminal::SetTitle("Roguelike")
+        terminal::SetTitle("Roguelike"),
     )?;
+    terminal::enable_raw_mode()?;
     print_screen_background()?;
     print_screen(&screen_state)?;
 
@@ -225,7 +226,7 @@ fn disp_look_cases() -> Result<()> {
             SetForegroundColor(Color::White),
             cursor::MoveTo(N_WIDTH + 2 + 15, 4 + i as u16),
             Print(line)
-        );
+        )?;
     }
     Ok(())
 }
@@ -252,19 +253,19 @@ fn print_screen_background() -> Result<()> {
     grid.draw_line(0, 0, 0, sh - 1, 1).unwrap();
     grid.draw_line(sw - 1, 0, sw - 1, sh - 1, 1).unwrap();
 
-    grid.draw_line(2 + N_WIDTH as usize, 0, 2 + N_WIDTH as usize, sh - 1, 1).unwrap();
-    grid.draw_line(0, 1 + N_HEIGHT as usize, 1 + N_WIDTH as usize, 1 + N_HEIGHT as usize, 1).unwrap();
+    grid.draw_line(1 + N_WIDTH as usize, 0, 1 + N_WIDTH as usize, sh - 1, 1).unwrap();
+    grid.draw_line(0, 1 + N_HEIGHT as usize, N_WIDTH as usize, 1 + N_HEIGHT as usize, 1).unwrap();
     let s = grid.to_string(graphics::grid::GridStyle::Double);
     execute!(
         stdout(),
         SetForegroundColor(SCREEN_BOUNDARIES_CLR),
-    );
+    )?;
     for (y, line) in s.iter().enumerate() {
         execute!(
             stdout(),
             cursor::MoveTo(0, y as u16),
             Print(line),
-        );
+        )?;
     }
     /*
     // Making Screen Boundaries
