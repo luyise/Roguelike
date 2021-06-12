@@ -26,7 +26,7 @@ impl MapElement for Floor {
     }
 
     fn interact_long(&mut self) -> String {
-        panic!("Nothing here")
+        String::from("Nothing here")
     }
 
     fn get_char(&self) -> char {
