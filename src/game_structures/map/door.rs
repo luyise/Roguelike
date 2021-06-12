@@ -30,12 +30,18 @@ impl MapElement for Door {
         self.opened
     }
 
-    fn interact_short(&mut self) {
-        panic!("not implemented")
+    fn interact_short(&mut self) -> String {
+        String::from("Try not to get hurt!")
     }
 
-    fn interact_long(&mut self) {
-        self.opened = !self.opened
+    fn interact_long(&mut self) -> String {
+        if self.opened {
+            self.opened = false;
+            String::from("The door is now closed")
+        } else {
+            self.opened = true;
+            String::from("The door is now opened")
+        }
     }
 
     fn get_char(&self) -> char {

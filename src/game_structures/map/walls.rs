@@ -34,12 +34,12 @@ impl MapElement for Floor {
         false
     }
 
-    fn interact_short(&mut self) {
-        panic!("not implemented")
+    fn interact_short(&mut self) -> String() {
+        String::from("You shouldn't be here...")
     }
 
-    fn interact_long(&mut self) {
-        panic!("not implemented")
+    fn interact_long(&mut self) -> String() {
+        String::from("Wall is immuable")
     }
 
     fn get_char(&self) -> char {
