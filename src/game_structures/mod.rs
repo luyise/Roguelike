@@ -45,7 +45,7 @@ impl Entity {
     pub fn get_clr(&self) -> Color {
         match self {
             Entity::NonPlayerCharacter(_) => PLAYER_CLR,
-            Entity::Obstacle(_) => SCREEN_BOUNDARIES_CLR,
+            Entity::Obstacle(obs) => obs.color,
             Entity::Ground(_) => GROUND_CLR,
         }
     }
