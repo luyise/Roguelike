@@ -94,17 +94,19 @@ pub struct GameState {
     pub screen_pos: Point,
     pub looking: bool,
 
+    pub map: map::Map,
+
     pub modifications: GameModifications
 }
 
 impl GameState {
-    pub fn new() -> GameState {
+    pub fn new(map: map::Map) -> GameState {
         GameState {
             player: Player::new(),
             entities: Vec::new(),
             screen_pos: Point { x: 0, y: 0 },
             looking: false,
-
+            map,
             modifications: GameModifications::new()
         }
     }
@@ -134,6 +136,42 @@ impl GameState {
         self.modifications = GameModifications::new()
     }
 
+    pub fn get_info(&self) -> [[Option<[String; 9]>; 3]; 3] {
+        let mut infos = [
+                [None, None, None],
+                [None, None, None],
+                [None, None, None],
+            ];
+        
+        let inf_x = if self.player.pos.x == 0 { 1 } else { 0 };
+        let inf_y = if self.player.pos.y == 0 { 1 } else { 0 };
+        
+        for y in inf_y..3 {
+            for x in inf_x..3 {
+                match self.map.get_element(self.player.pos.x as usize + x - 1, self.player.pos.y as usize + y - 1) {
+                    Err(()) => (),
+                    Ok(element) => infos[y][x] = element.get_info(),
+                }
+            }
+        }
+
+        for e in self.entities.iter() {
+            let (x, y, info) = match e {
+                Entity::Ground(p) => (p.pos.x, p.pos.y, &p.info),
+                Entity::Obstacle(p) => (p.pos.x, p.pos.y, &p.info),
+                Entity::NonPlayerCharacter(p) => (p.pos.x, p.pos.y, &p.info),
+            };
+
+            let dx = x - self.player.pos.x;
+            let dy = y - self.player.pos.y;
+            if -1 <= dx && dx <= 1 && -1 <= dy && dy <= 1 {
+                infos[(dy + 1) as usize][(dx + 1) as usize] = Some(info.clone());
+            }
+        }
+
+        infos
+    }
+
     pub fn move_player(&mut self, dx: i16, dy: i16) {
         let x = self.player.pos.x;
         let y = self.player.pos.y;
@@ -143,6 +181,15 @@ impl GameState {
         if nx < 0 || nx >= MAP_WIDTH as i16 || ny < 0 || ny >= MAP_HEIGHT as i16 {
             return;
         }
+
+        match self.map.get_element(nx as usize, ny as usize) {
+            Ok(element) => {
+                if !element.can_step_on() {
+                    return
+                }
+            },
+            Err(()) => return,
+        };
 
         for e in self.entities.iter() {
             let e_pos = e.get_pos();
@@ -168,6 +215,25 @@ impl GameState {
 
         if self.looking {
             self.modifications.moved_while_looking = true
+        }
+    }
+
+    pub fn interact(&mut self, dx: i16, dy: i16) -> Result<String, ()> {
+        if self.player.pos.x + dx < 0 || self.player.pos.y + dy < 0 {
+            Err(())
+        } else {
+            let nx = (self.player.pos.x + dx) as usize;
+            let ny = (self.player.pos.y + dy) as usize;
+            match self.map.get_element_as_mut(nx, ny) {
+                Ok(element) => {
+                    if dx == 0 && dy == 0 {
+                        Ok(element.interact_short())
+                    } else {
+                        Ok(element.interact_long())
+                    }
+                },
+                Err(()) => Err(()),
+            }
         }
     }
 }

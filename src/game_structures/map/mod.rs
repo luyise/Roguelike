@@ -15,7 +15,7 @@ pub trait MapElement {
 
     fn get_color(&self) -> Color;
 
-    fn get_info(&self) -> [String; 9];
+    fn get_info(&self) -> Option<[String; 9]>;
 }
 
 pub struct Map {

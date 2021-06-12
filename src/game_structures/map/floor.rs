@@ -37,11 +37,7 @@ impl MapElement for Floor {
         BACKGROUND_CLR
     }
 
-    fn get_info(&self) -> [String; 9] {
-        [
-            String::new(), String::new(), String::new(),
-            String::new(), String::new(), String::new(),
-            String::new(), String::new(), String::new()
-        ]
+    fn get_info(&self) -> Option<[String; 9]> {
+        None
     }
 }

@@ -60,9 +60,9 @@ impl MapElement for Door {
         DOORS_CLR
     }
 
-    fn get_info(&self) -> [String; 9] {
+    fn get_info(&self) -> Option<[String; 9]> {
         if self.opened {
-            [
+            Some([
                 String::from(" An opened door,    "),
                 String::from("don't catch a cold! "),
                 String::from("                    "),
@@ -72,9 +72,9 @@ impl MapElement for Door {
                 String::from("                    "),
                 String::from("                    "),
                 String::from("                    ")
-            ]
+            ])
         } else {
-            [
+            Some([
                 String::from(" A closed door, it  "),
                 String::from("doesn't seems to be "),
                 String::from("locked.             "),
@@ -84,7 +84,7 @@ impl MapElement for Door {
                 String::from("                    "),
                 String::from("                    "),
                 String::from("                    ")
-            ]
+            ])
         }
     }
 }

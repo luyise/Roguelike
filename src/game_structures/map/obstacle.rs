@@ -37,8 +37,8 @@ impl MapElement for Floor {
         OBSTACLES_CLR
     }
 
-    fn get_info(&self) -> [String; 9] {
-        [
+    fn get_info(&self) -> Option<[String; 9]> {
+        Some([
             String::from(" A U+25A0 character "),
             String::from("that seems to have  "),
             String::from("arrived there by    "),
@@ -48,6 +48,6 @@ impl MapElement for Floor {
             String::from("                    "),
             String::from("                    "),
             String::from("                    ")
-        ]
+        ])
     }
 }
