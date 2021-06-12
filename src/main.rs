@@ -27,17 +27,22 @@ fn main() -> Result<()> {
     gs.entities.push(Entity::Obstacle(Obstacle::single(10, 11)));
 
     gs.entities.push(Entity::Obstacle(Obstacle::wall("_SE_", 2, 2)));
-    for i in 3..14 {
+    for i in 3..24 {
         gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 2)));
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)));
-    }
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 14, 2)));
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)))
+    };
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 24, 2)));
     for j in 3..30 {
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 14, j)));
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)));
-    }
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 14, 30)));
+        if j != 10 {
+            gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 24, j)))
+        };
+        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)))
+    };
+    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 24, 30)));
     gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
+
+    // and a door
+    gs.entities.push(Entity::Obstacle(Obstacle::door("VERT", 24, 10)));
     // -
 
     let (_cols, _rows) = terminal::size()?;
@@ -248,7 +253,25 @@ fn disp_look_cases() -> Result<()> {
         stdout(),
         SetForegroundColor(Color::White),
         cursor::MoveTo(N_WIDTH + 2 + 28, SCREEN_HEIGHT - 5),
-        Print(String::from("Press [l] again to restore environment"))
+        Print(String::from("Press [l] again to restore environment")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 0*21 + 9, 4 + 0*10),
+        Print(String::from("[i]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 1*21 + 9, 4 + 0*10),
+        Print(String::from("[o]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 2*21 + 9, 4 + 0*10),
+        Print(String::from("[p]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 0*21 + 9, 4 + 1*10),
+        Print(String::from("[k]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 1*21 + 9, 4 + 1*10),
+        Print(String::from("[f]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 2*21 + 9, 4 + 1*10),
+        Print(String::from("[m]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 0*21 + 9, 4 + 2*10),
+        Print(String::from("[,]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 1*21 + 9, 4 + 2*10),
+        Print(String::from("[:]")),
+        cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + 2*21 + 7, 4 + 2*10),
+        Print(String::from("[!]/[=]"))
     )?;
     Ok(())
 }

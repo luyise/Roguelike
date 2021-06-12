@@ -1,8 +1,12 @@
+use super::super::colors::*;
 use super::Point;
 use std::convert::TryInto;
 use super::super::graphics::chars::*;
+use crossterm::style::Color;
 
 pub struct Obstacle {
+    pub color: Color,
+    pub state: String,
     pub pos: Point,
     pub sprite: char,
     pub info: [String; 9],
@@ -11,6 +15,8 @@ pub struct Obstacle {
 impl Obstacle {
     pub fn single(i: u16, j: u16) -> Obstacle {
         Obstacle {
+            color: SCREEN_BOUNDARIES_CLR,
+            state: String::new(),
             pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
             sprite: '\u{25A0}',
             info: 
@@ -18,7 +24,7 @@ impl Obstacle {
                     String::from(" A U+25A0 character "),
                     String::from("that seems to have  "),
                     String::from("arrived there by    "),
-                    String::from("mistake             "),
+                    String::from("mistake.            "),
                     String::from("                    "),
                     String::from("                    "),
                     String::from("                    "),
@@ -45,13 +51,42 @@ impl Obstacle {
         };
 
         Obstacle {
+            color: SCREEN_BOUNDARIES_CLR,
+            state: String::new(),
             pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
             sprite: c,
             info: 
                 [
-                    String::from(" A wall             "),
+                    String::from(" A wall.            "),
                     String::from("                    "),
                     String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    ")
+                ]
+        }
+    }
+
+    pub fn door(s: &str, i: u16, j: u16) -> Obstacle {
+        let c = match &*s.to_lowercase() {
+            "v" | "ver" | "vert" => sg_pipe::NS__,
+            "h" | "hor" | "hori" => sg_pipe::__EW,
+            _ => panic!("Invalid argument for door function")
+        };
+
+        Obstacle {
+            color: DOORS_CLR,
+            state: String::from("closed"),
+            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
+            sprite: c,
+            info:
+                [
+                    String::from(" A closed door, it  "),
+                    String::from("doesn't seems to be "),
+                    String::from("locked.             "),
                     String::from("                    "),
                     String::from("                    "),
                     String::from("                    "),
