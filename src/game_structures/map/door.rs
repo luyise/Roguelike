@@ -31,7 +31,11 @@ impl MapElement for Door {
     }
 
     fn interact_short(&mut self) -> String {
-        String::from("Try not to get hurt!")
+        if !self.opened {
+            String::from("You shouldn't be here...")
+        } else {
+            String::from("Try not to get hurt!")
+        }
     }
 
     fn interact_long(&mut self) -> String {
