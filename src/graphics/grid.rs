@@ -3,15 +3,16 @@
 use crate::graphics::chars;
 use std::cmp::{max, min};
 
-const NW : u8 = 1 << 0;
-const  W : u8 = 1 << 1;
-const SW : u8 = 1 << 2;
-const N  : u8 = 1 << 3;
-const S  : u8 = 1 << 4;
-const NE : u8 = 1 << 5;
-const  E : u8 = 1 << 6;
-const SE : u8 = 1 << 7;
+const N  : u8 = 1 << 0;
+const S  : u8 = 1 << 1;
+const E  : u8 = 1 << 2;
+const W  : u8 = 1 << 3;
+const NW : u8 = 1 << 4;
+const SW : u8 = 1 << 5;
+const SE : u8 = 1 << 6;
+const NE : u8 = 1 << 7;
 
+#[derive(Debug, Clone, Copy)]
 pub enum GridStyle {
     Single,
     Double,
@@ -38,6 +39,21 @@ impl Grid {
             Err(())
         } else {
             self.map[y][x] = index;
+            Ok(())
+        }
+    }
+
+
+    // Need to have x1 <= x2 and y1 <= y2 fill the rectangle 
+    pub fn fill_rect(&mut self, x1: usize, y1: usize, x2: usize, y2 : usize, index: u8) -> Result<(), ()> {
+        if y1 > y2 || y2 >= self.map.len() || x1 > x2 || x2 >= self.map.len() {
+            Err(())
+        } else {
+            for x in x1..=x2 {
+                for y in y1..=y2 {
+                    self.map[y][x] = index
+                }
+            }
             Ok(())
         }
     }
@@ -97,6 +113,19 @@ impl Grid {
         v
     }
 
+    pub fn get_value(&self, x: usize, y: usize, grid_style: GridStyle) -> Result<char, ()> {
+        if y < self.map.len() {
+            if x < self.map[0].len() {
+                let n = self.get_identical_neigh(x, y);
+                Ok(char_of_grid(n, &grid_style))
+            } else {
+                Err(())
+            }
+        } else {
+            Err(())
+        }
+    }
+
     // Assumes the map is not empty and that (x, y) is inside it
     // Get a bitflag indicating which neighbourds of a pos is of the same index
     fn get_identical_neigh(&self, x: usize, y: usize) -> u8 {
@@ -138,81 +167,9 @@ impl Grid {
     }
 }
 
-fn contains(a: u8, b: u8) -> bool {
-    a == a | b
-}
-
-
-macro_rules! base_case {
-    ($gs: ident; $before: ident) => {
-        match $gs {
-            GridStyle::Single => chars::sg_pipe::$before,
-            GridStyle::Double => chars::db_pipe::$before,
-        }
-    };
-}
-
-
 fn char_of_grid(n: u8, grid_style: &GridStyle) -> char {
-    if contains(n, N) {
-        if contains(n, S) {
-            if contains(n, E) {
-                if contains(n, W) {
-                    base_case!(grid_style; NSEW)
-                } else {
-                    base_case!(grid_style; NSE_)
-                }
-            } else {
-                if contains(n, W) {
-                    base_case!(grid_style; NS_W)
-                } else {
-                    base_case!(grid_style; NS__)
-                }
-            }
-        } else {
-            if contains(n, E) {
-                if contains(n, W) {
-                    base_case!(grid_style; N_EW)
-                } else {
-                    base_case!(grid_style; N_E_)
-                }
-            } else {
-                if contains(n, W) {
-                    base_case!(grid_style; N__W)
-                } else {
-                    base_case!(grid_style; N___)
-                }
-            }
-        }
-    } else {
-        if contains(n, S) {
-            if contains(n, E) {
-                if contains(n, W) {
-                    base_case!(grid_style; _SEW)
-                } else {
-                    base_case!(grid_style; _SE_)
-                }
-            } else {
-                if contains(n, W) {
-                    base_case!(grid_style; _S_W)
-                } else {
-                    base_case!(grid_style; _S__)
-                }
-            }
-        } else {
-            if contains(n, E) {
-                if contains(n, W) {
-                    base_case!(grid_style; __EW)
-                } else {
-                    base_case!(grid_style; __E_)
-                }
-            } else {
-                if contains(n, W) {
-                    base_case!(grid_style; ___W)
-                } else {
-                    base_case!(grid_style; ____)
-                }
-            }
-        }
+    match grid_style {
+        GridStyle::Single => chars::sg_pipe::TABLE[(n & 15) as usize],
+        GridStyle::Double => chars::db_pipe::TABLE[(n & 15) as usize],
     }
 }

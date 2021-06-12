@@ -18,3 +18,17 @@ pub const __E_: char = ' ';
 pub const ___W: char = ' ';
 
 pub const ____: char = ' ';
+
+/*
+const N  : u8 = 1 << 0;
+const S  : u8 = 1 << 1;
+const  E : u8 = 1 << 2;
+const  W : u8 = 1 << 3;
+*/
+
+pub const TABLE: [char; 16] = [
+    ____, N___, _S__, NS__,
+    __E_, N_E_, _SE_, NSE_,
+    ___W, N__W, _S_W, NS_W,
+    __EW, N_EW, _SEW, NSEW
+];
