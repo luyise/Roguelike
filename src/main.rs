@@ -5,6 +5,7 @@ pub mod graphics;
 
 use colors::*;
 use game_structures::*;
+use game_structures::obstacles::Obstacle;
 use options::*;
 
 use std::io::stdout;
@@ -22,9 +23,9 @@ fn main() -> Result<()> {
     let mut screen_state = gs.make_screen_state();
 
     // - test, j'ajoute des obstacles
-    gs.entities.push(Entity::Obstacle(Obstacle::new(10, 10)));
-    gs.entities.push(Entity::Obstacle(Obstacle::new(10, 11)));
-    gs.entities.push(Entity::Obstacle(Obstacle::new(14, 20)));
+    gs.entities.push(Entity::Obstacle(Obstacle::single(10, 10)));
+    gs.entities.push(Entity::Obstacle(Obstacle::single(10, 11)));
+    gs.entities.push(Entity::Obstacle(Obstacle::single(14, 20)));
     // -
 
     let (_cols, _rows) = terminal::size()?;
@@ -212,13 +213,16 @@ fn disp_look_info(gs: &GameState) -> Result<()> {
     Ok(())
 }
 
+// Displaying squares on environment screen
 fn disp_look_cases() -> Result<()> {
+    
+    clean_environment()?; 
+
     let mut grid =  graphics::grid::Grid::new(3 * 20 + 4, 3 * 9 + 4);
     for i in 0..=3 {
         grid.draw_line(0, 10 * i, 63, 10 * i, 1).unwrap();
-        grid.draw_line(21 * i, 0, 21 * i, 30, 1).unwrap();
-    }
-    clean_environment()?; // Displaying squares on environment screen
+        grid.draw_line(21 * i, 0, 21 * i, 30, 1).unwrap()
+    };
     let s = grid.to_string(graphics::grid::GridStyle::Single);
     for (i, line) in s.iter().enumerate() {
         execute!(
@@ -226,8 +230,14 @@ fn disp_look_cases() -> Result<()> {
             SetForegroundColor(Color::White),
             cursor::MoveTo(N_WIDTH + 2 + 15, 4 + i as u16),
             Print(line)
-        )?;
-    }
+        )?
+    };
+    execute!(
+        stdout(),
+        SetForegroundColor(Color::White),
+        cursor::MoveTo(N_WIDTH + 2 + 28, SCREEN_HEIGHT - 5),
+        Print(String::from("Press [l] again to restore environment"))
+    )?;
     Ok(())
 }
 
@@ -267,81 +277,6 @@ fn print_screen_background() -> Result<()> {
             Print(line),
         )?;
     }
-    /*
-    // Making Screen Boundaries
-    execute!(
-        stdout(), // Coin Haut-gauche
-        cursor::MoveTo(0, 0),
-        SetForegroundColor(SCREEN_BOUNDARIES_CLR),
-        Print('\u{2554}'.to_string()),
-    )?;
-    for _ in 1..=(N_WIDTH) {
-        // Bord supérieur
-        execute!(stdout(), Print('\u{2550}'.to_string()),)?
-    }
-    execute!(stdout(), Print('\u{2566}'.to_string()),)?;
-    for _ in (N_WIDTH + 2)..(SCREEN_WIDTH - 1) {
-        execute!(stdout(), Print('\u{2550}'.to_string()),)?
-    }
-    execute!(stdout(), Print('\u{2557}'.to_string()),)?;
-    for j in 1..=(N_HEIGHT) {
-        // Bordures verticales
-        execute!(
-            stdout(),
-            cursor::MoveTo(0, j),
-            Print('\u{2551}'.to_string()),
-            cursor::MoveTo(N_WIDTH + 1, j),
-            Print('\u{2551}'.to_string()),
-            cursor::MoveTo(SCREEN_WIDTH - 1, j),
-            Print('\u{2551}'.to_string()),
-        )?
-    }
-    execute!(
-        stdout(),
-        cursor::MoveTo(0, N_HEIGHT + 1),
-        Print('\u{2560}'.to_string()),
-    )?;
-    execute!(
-        stdout(),
-        cursor::MoveTo(N_WIDTH + 1, N_HEIGHT + 1),
-        Print('\u{2563}'.to_string()),
-    )?;
-    execute!(
-        stdout(),
-        cursor::MoveTo(SCREEN_WIDTH - 1, N_HEIGHT + 1),
-        Print('\u{2551}'.to_string()),
-    )?;
-    for j in (N_HEIGHT + 2)..(SCREEN_HEIGHT - 1) {
-        execute!(
-            stdout(),
-            cursor::MoveTo(0, j),
-            Print('\u{2551}'.to_string()),
-            cursor::MoveTo(N_WIDTH + 1, j),
-            Print('\u{2551}'.to_string()),
-            cursor::MoveTo(SCREEN_WIDTH - 1, j),
-            Print('\u{2551}'.to_string()),
-        )?
-    }
-    execute!(
-        stdout(), // Bord horizontal intermédiaire
-        cursor::MoveTo(1, N_HEIGHT + 1)
-    )?;
-    for _ in 1..=(N_WIDTH) {
-        execute!(stdout(), Print('\u{2550}'.to_string()),)?
-    }
-    execute!(
-        stdout(), // Bord horizontal inférieure
-        cursor::MoveTo(0, SCREEN_HEIGHT - 1),
-        Print('\u{255A}'.to_string())
-    )?;
-    for _ in 1..=(N_WIDTH) {
-        execute!(stdout(), Print('\u{2550}'.to_string()),)?
-    }
-    execute!(stdout(), Print('\u{2569}'.to_string()))?;
-    for _ in (N_WIDTH + 2)..(SCREEN_WIDTH - 1) {
-        execute!(stdout(), Print('\u{2550}'.to_string()),)?
-    }
-    execute!(stdout(), Print('\u{255D}'.to_string()),)?;*/
 
     Ok(())
 }

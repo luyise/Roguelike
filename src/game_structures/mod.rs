@@ -1,6 +1,8 @@
 mod player;
+pub mod obstacles;
 
 use player::*;
+use obstacles::*;
 
 use crate::colors::*;
 use crate::options::*;
@@ -17,33 +19,6 @@ pub struct NonPlayerCharacter {
     pos: Point,
     sprite: char,
     info: [String; 9],                  // /!\ Une information se déclare dans un tableau de 9 lignes, chacune d'au plus 20 charactère /!\ \\
-}
-
-pub struct Obstacle {
-    pos: Point,
-    sprite: char,
-    info: [String; 9],
-}
-
-impl Obstacle {
-    pub fn new(i: u16, j: u16) -> Obstacle {
-        Obstacle {
-            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
-            sprite: '\u{25A0}',
-            info: 
-                [
-                    String::from(" A U+25A0 character "),
-                    String::from("that seems to have  "),
-                    String::from("arrived there by    "),
-                    String::from("mistake             "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    ")
-                ]
-        }
-    }
 }
 
 pub struct Ground {
