@@ -180,7 +180,7 @@ impl GameState {
             || (nx + 3 < MAP_WIDTH.try_into().unwrap()
                 && nx + 3 >= (self.screen_pos.x + N_WIDTH as i16).try_into().unwrap())
             || (3 <= ny && ny - 3 < self.screen_pos.y.try_into().unwrap())
-            || (ny + 3 < MAP_WIDTH.try_into().unwrap()
+            || (ny + 3 < MAP_HEIGHT.try_into().unwrap()
                 && ny + 3 >= (self.screen_pos.y + N_HEIGHT as i16).try_into().unwrap())
         {
             self.screen_pos.x = (self.screen_pos.x as i16 + dx).try_into().unwrap();
