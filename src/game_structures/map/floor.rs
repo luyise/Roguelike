@@ -30,4 +30,12 @@ impl MapElement for Floor {
     fn get_char(&self) -> char {
         self.image
     }
+
+    fn get_info(&self) -> [String; 9] {
+        [
+            String::new(), String::new(), String::new(),
+            String::new(), String::new(), String::new(),
+            String::new(), String::new(), String::new()
+        ]
+    }
 }

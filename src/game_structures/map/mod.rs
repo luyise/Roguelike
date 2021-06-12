@@ -1,6 +1,7 @@
 use std::boxed::Box;
 
 pub mod floor;
+pub mod door;
 
 pub trait MapElement {
     fn can_step_on(&self) -> bool;
@@ -10,6 +11,8 @@ pub trait MapElement {
     fn interact_long(&mut self);
 
     fn get_char(&self) -> char;
+
+    fn get_info(&self) -> [String; 9];
 }
 
 pub struct Map {
