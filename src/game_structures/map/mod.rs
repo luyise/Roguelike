@@ -1,8 +1,6 @@
 use std::boxed::Box;
 use crossterm::style::Color;
 
-use crate::colors;
-
 use super::ScreenState;
 
 pub mod floor;

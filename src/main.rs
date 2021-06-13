@@ -146,24 +146,6 @@ fn main() -> Result<()> {
         refresh_logs(&gs)?;
         refresh_environment(&gs)?;
 
-        // execute!(
-        //     stdout(),
-        //     SetForegroundColor(Color::White),
-        //     cursor::MoveTo(1, N_HEIGHT + 2),
-        // )?;
-
-        // println!("This is an information! ");
-        // execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 3),)?;
-        // println!(
-        //     "DEBUG: player.pos : {} {}      ",
-        //     gs.player.pos.x, gs.player.pos.y
-        // );
-        // execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 4),)?;
-        // println!(
-        //     "DEBUG: screen.pos : {} {}      ",
-        //     gs.screen_pos.x, gs.screen_pos.y
-        // );
-
         // IV. Time management
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30))
     }
