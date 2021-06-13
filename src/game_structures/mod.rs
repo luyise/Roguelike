@@ -250,27 +250,21 @@ impl GameState {
         }
     }
 
-    pub fn interact(&mut self, dx: i16, dy: i16) -> Result<(), ()> {
-        if self.player.pos.x + dx < 0 || self.player.pos.y + dy < 0 {
-            Err(())
-        } else {
+    pub fn interact(&mut self, dx: i16, dy: i16) {
+        if self.player.pos.x + dx >= 0 && self.player.pos.y + dy >= 0 {
             if self.looking {
                 self.modifications.look_data_changed = true
             }
             let nx = (self.player.pos.x + dx) as usize;
             let ny = (self.player.pos.y + dy) as usize;
-            match self.map.get_element_as_mut(nx, ny) {
-                Ok(element) => {
-                    if dx == 0 && dy == 0 {
-                        let (m, clr) = element.interact_short();
-                        self.push_log(m, clr)
-                    } else {
-                        let (m, clr) = element.interact_long();
-                        self.push_log(m, clr)
-                    };
-                    Ok(())
-                }
-                Err(()) => Err(()),
+            if let Ok(element) = self.map.get_element_as_mut(nx, ny) {
+                if dx == 0 && dy == 0 {
+                    let (m, clr) = element.interact_short();
+                    self.push_log(m, clr)
+                } else {
+                    let (m, clr) = element.interact_long();
+                    self.push_log(m, clr)
+                };
             }
         }
     }
