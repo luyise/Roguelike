@@ -40,7 +40,7 @@ impl MapElement for Wall {
     }
 
     fn interact_short(&mut self) -> String {
-        String::from("You shouldn't be here...")
+        (String::from("You shouldn't be here...")
     }
 
     fn interact_long(&mut self) -> String {

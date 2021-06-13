@@ -15,7 +15,7 @@ pub struct Obstacle {
 impl Obstacle {
     pub fn single(i: u16, j: u16) -> Obstacle {
         Obstacle {
-            color: SCREEN_BOUNDARIES_CLR,
+            color: OBSTACLES_CLR,
             state: String::new(),
             pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
             sprite: '\u{25A0}',
@@ -51,7 +51,7 @@ impl Obstacle {
         };
 
         Obstacle {
-            color: SCREEN_BOUNDARIES_CLR,
+            color: WALLS_CLR,
             state: String::new(),
             pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
             sprite: c,

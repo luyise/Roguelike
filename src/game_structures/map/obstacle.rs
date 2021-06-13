@@ -21,6 +21,7 @@ impl MapElement for Obstacle {
         true
     }
 
+
     fn interact_short(&mut self) -> String {
         String::from("You shouldn't be here...")
     }

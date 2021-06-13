@@ -1,9 +1,13 @@
 mod player;
+
+pub mod log;
+
 pub mod map;
 pub mod obstacles;
 
 use player::*;
 use obstacles::*;
+use log::Log;
 
 use crate::colors::*;
 use crate::options::*;
@@ -70,7 +74,8 @@ impl Entity {
 pub struct GameModifications {
     pub screen_changed: [[bool; N_HEIGHT as usize]; N_WIDTH as usize],
     pub looking_changed: bool,
-    pub moved_while_looking: bool
+    pub look_data_changed: bool,
+    pub logs_changed: bool
 }
 
 impl GameModifications {
@@ -78,7 +83,8 @@ impl GameModifications {
         GameModifications {
             screen_changed: [[true; N_HEIGHT as usize]; N_WIDTH as usize],
             looking_changed: false,
-            moved_while_looking: false
+            look_data_changed: false,
+            logs_changed: false,
         }
     }
 }
@@ -105,10 +111,10 @@ pub struct GameState {
     pub entities: Vec<Entity>,
     pub screen_pos: Point,
     pub looking: bool,
-
     pub map: map::Map,
+    pub modifications: GameModifications,
 
-    pub modifications: GameModifications
+    pub logs: Log
 }
 
 impl GameState {
@@ -119,7 +125,8 @@ impl GameState {
             screen_pos: Point { x: 0, y: 0 },
             looking: false,
             map,
-            modifications: GameModifications::new()
+            modifications: GameModifications::new(),
+            logs: Log::new()
         }
     }
 
@@ -151,6 +158,11 @@ impl GameState {
 
     pub fn refresh_modifications(&mut self) {
         self.modifications = GameModifications::new()
+    }
+
+    pub fn push_log(&mut self, m: String, clr: Color) {
+        self.logs.push(m, clr);
+        self.modifications.logs_changed = true
     }
 
     pub fn get_info(&self) -> [[Option<[String; 9]>; 3]; 3] {
@@ -233,23 +245,29 @@ impl GameState {
         self.player.pos.y = ny.try_into().unwrap();
 
         if self.looking {
-            self.modifications.moved_while_looking = true
+            self.modifications.look_data_changed = true
         }
     }
 
-    pub fn interact(&mut self, dx: i16, dy: i16) -> Result<String, ()> {
+    pub fn interact(&mut self, dx: i16, dy: i16) -> Result<(), ()> {
         if self.player.pos.x + dx < 0 || self.player.pos.y + dy < 0 {
             Err(())
         } else {
+            if self.looking {
+                self.modifications.look_data_changed = true
+            }
             let nx = (self.player.pos.x + dx) as usize;
             let ny = (self.player.pos.y + dy) as usize;
             match self.map.get_element_as_mut(nx, ny) {
                 Ok(element) => {
                     if dx == 0 && dy == 0 {
-                        Ok(element.interact_short())
+                        let (m, clr) = element.interact_short();
+                        self.push_log(m, clr)
                     } else {
-                        Ok(element.interact_long())
-                    }
+                        let (m, clr) = element.interact_long();
+                        self.push_log(m, clr)
+                    };
+                    Ok(())
                 },
                 Err(()) => Err(()),
             }
