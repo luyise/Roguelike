@@ -2,6 +2,8 @@ use crossterm::style::Color;
 use std::boxed::Box;
 
 use super::ScreenState;
+use std::fs::File;
+use std::io::Write;
 
 pub mod door;
 pub mod floor;
@@ -97,5 +99,9 @@ impl Map {
             }
         }
         ss
+    }
+
+    pub fn save(&self, file: &mut File) -> std::io::Result<usize> {
+        file.write(b"Map saving not implemented")
     }
 }

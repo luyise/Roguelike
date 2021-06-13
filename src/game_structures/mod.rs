@@ -7,17 +7,29 @@ pub mod obstacles;
 
 use log::Log;
 use obstacles::*;
-use player::*;
+use player::Player;
 
 use crate::colors::*;
 use crate::options::*;
 
 use crossterm::style::Color;
 use std::convert::TryInto;
+use std::fs::File;
+use std::io::Write;
 
 pub struct Point {
     pub x: i16,
     pub y: i16,
+}
+
+impl Point {
+    pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
+        let mut s = String::from("Point {\n");
+        s.push_str(&format!("\tx : {}\n", self.x));
+        s.push_str(&format!("\ty : {}\n", self.y));
+        s.push_str("}\n");
+        f.write(s.as_bytes())
+    }
 }
 
 pub struct NonPlayerCharacter {
@@ -26,9 +38,41 @@ pub struct NonPlayerCharacter {
     info: [String; 9], // /!\ Une information se déclare dans un tableau de 9 lignes, chacune d'au plus 20 charactère /!\ \\
 }
 
+impl NonPlayerCharacter {
+    pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
+        f.write(b"\t pos:\n")?;
+        self.pos.save(f)?;
+        let mut s = String::from("\tsprite: ");
+        s.push(self.sprite);
+        s.push_str("\n");
+        f.write(s.as_bytes())?;
+        f.write(b"\t info: [\n")?;
+        for i in self.info.iter() {
+            f.write(b"\t\t\"")?;
+            f.write(i.as_bytes())?;
+            f.write(b"\",\n")?;
+        }
+        f.write(b"\t]\n")
+    }
+}
+
 pub struct Ground {
     pos: Point,
     info: [String; 9],
+}
+
+impl Ground {
+    pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
+        f.write(b"\t pos:\n")?;
+        self.pos.save(f)?;
+        f.write(b"\t info: [\n")?;
+        for i in self.info.iter() {
+            f.write(b"\t\t\"")?;
+            f.write(i.as_bytes())?;
+            f.write(b"\",\n")?;
+        }
+        f.write(b"\t]\n")
+    }
 }
 
 pub enum Entity {
@@ -68,6 +112,25 @@ impl Entity {
             Entity::Obstacle(obs) => &obs.info,
             Entity::Ground(grd) => &grd.info,
         }
+    }
+
+    pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
+        f.write(b"Entity {\n")?;
+         match self {
+            Entity::NonPlayerCharacter(npc) => {
+                f.write(b"\tNonPlayerCharacter: {\n")?;
+                npc.save(f)?;
+            }
+            Entity::Obstacle(obs) => {
+                f.write(b"\tObstacle: {\n")?;
+                obs.save(f)?;
+            }
+            Entity::Ground(g) => {
+                f.write(b"\tGround: {\n")?;
+                g.save(f)?;
+            }
+        }
+        f.write(b"\t}\n}\n")
     }
 }
 
@@ -276,5 +339,18 @@ impl GameState {
         element: Box<dyn map::MapElement>,
     ) -> Result<(), ()> {
         self.map.set_element(x, y, element)
+    }
+
+    pub fn save(self, file: &mut File,) -> std::io::Result<usize> {
+        file.write(b"GameState: {\n")?;
+        self.player.save(file)?;
+        file.write(b"}\nEntities : {\n")?;
+        for entity in self.entities.iter() {
+            entity.save(file)?;
+        }
+        file.write(b"}\nScreenPos : ")?;
+        self.screen_pos.save(file)?;
+        self.map.save(file)?;
+        file.write(b"}\n")
     }
 }

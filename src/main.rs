@@ -13,6 +13,7 @@ use options::*;
 
 use game_structures::map::MapElement;
 use std::boxed::Box;
+use std::fs::File;
 use std::io::stdout;
 use std::time::Duration;
 
@@ -153,6 +154,9 @@ fn main() -> Result<()> {
         // IV. Time management
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30))
     }
+
+    let mut f = File::create("saved.txt").unwrap();
+    gs.save(&mut f).unwrap();
 
     Ok(())
 

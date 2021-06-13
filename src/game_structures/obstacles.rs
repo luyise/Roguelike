@@ -3,6 +3,8 @@ use crate::colors::*;
 use crate::graphics::chars::*;
 use crossterm::style::Color;
 use std::convert::TryInto;
+use std::fs::File;
+use std::io::Write;
 
 pub struct Obstacle {
     pub color: Color,
@@ -101,5 +103,23 @@ impl Obstacle {
                 String::from("                    "),
             ],
         }
+    }
+
+    pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
+        f.write(b"\tstate: \"")?;
+        f.write(self.state.as_bytes())?;
+        f.write(b"\"\n\tpos:\n")?;
+        self.pos.save(f)?;
+        let mut s = String::from("\tsprite: ");
+        s.push(self.sprite);
+        s.push_str("\n");
+        f.write(s.as_bytes())?;
+        f.write(b"\t info: [\n")?;
+        for i in self.info.iter() {
+            f.write(b"\t\t\"")?;
+            f.write(i.as_bytes())?;
+            f.write(b"\",\n")?;
+        }
+        f.write(b"\t]\n")
     }
 }
