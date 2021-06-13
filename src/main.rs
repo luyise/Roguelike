@@ -4,6 +4,7 @@ pub mod game_structures;
 pub mod graphics;
 pub mod nasty_array;
 pub mod options;
+pub mod level_generators;
 
 use colors::*;
 use display::*;
@@ -20,7 +21,18 @@ use crossterm::style::{Color, SetBackgroundColor};
 use crossterm::terminal::ClearType;
 use crossterm::{cursor, event, execute, terminal, Result};
 
+const DISPLAY_CAVERN_GENERATOR: bool = true;
+
 fn main() -> Result<()> {
+    if DISPLAY_CAVERN_GENERATOR { 
+        crate::level_generators::cavern_generator::display::display_grid( 
+            crate::level_generators::cavern_generator::generate_cavern(0, 0.5, 9) 
+        )?; 
+        loop{};
+        #[allow(unreachable_code)]
+        Ok(()) 
+    } else {
+
     let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
     map.set_element(24, 10, Box::new(map::door::Door::vertical()))
         .unwrap();
@@ -143,4 +155,6 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+
+    }
 }
