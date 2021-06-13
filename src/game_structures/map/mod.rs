@@ -81,7 +81,7 @@ impl Map {
     }
 
     fn get_char(&self, x: usize, y: usize) -> (char, Color) {
-        (self.data[y][x].get_char(), colors::DOORS_CLR)
+        (self.data[y][x].get_char(), self.data[y][x].get_color())
     }
 
     pub fn get_screen(&self, left: usize, top: usize) -> ScreenState {

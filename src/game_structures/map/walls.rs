@@ -39,12 +39,12 @@ impl MapElement for Wall {
         false
     }
 
-    fn interact_short(&mut self) -> String {
-        (String::from("You shouldn't be here...")
+    fn interact_short(&mut self) -> (String, Color) {
+        (String::from("You shouldn't be here..."), Color::White)
     }
 
-    fn interact_long(&mut self) -> String {
-        String::from("Wall is immuable")
+    fn interact_long(&mut self) -> (String, Color) {
+        (String::from("Wall is immuable"), Color::White)
     }
 
     fn get_char(&self) -> char {

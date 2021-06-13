@@ -22,12 +22,12 @@ impl MapElement for Obstacle {
     }
 
 
-    fn interact_short(&mut self) -> String {
-        String::from("You shouldn't be here...")
+    fn interact_short(&mut self) -> (String, Color) {
+        (String::from("You shouldn't be here..."), Color::White)
     }
 
-    fn interact_long(&mut self) -> String {
-        String::from("Nothing to do with this thing")
+    fn interact_long(&mut self) -> (String, Color) {
+        (String::from("Nothing to do with this thing"), Color::White)
     }
 
     fn get_char(&self) -> char {
