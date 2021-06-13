@@ -28,13 +28,13 @@ impl Wall {
             }
         }
     }
-
-    pub fn to_box(self) -> Box<Self> {
-        Box::new(self)
-    }
 }
 
 impl MapElement for Wall {
+    fn to_box(self) -> Box<dyn MapElement> {
+        Box::new(self)
+    }
+
     fn can_step_on(&self) -> bool {
         false
     }

@@ -11,6 +11,9 @@ pub mod walls;
 pub mod obstacle;
 
 pub trait MapElement {
+
+    fn to_box(self) -> Box<dyn MapElement>;
+
     fn can_step_on(&self) -> bool;
 
     fn interact_short(&mut self) -> (String, Color);

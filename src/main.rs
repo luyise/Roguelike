@@ -12,6 +12,7 @@ use options::*;
 use std::boxed::Box;
 use std::io::stdout;
 use std::time::Duration;
+use game_structures::map::MapElement;
 
 use crossterm::event::{Event, KeyCode};
 use crossterm::style::{Color, Print, SetBackgroundColor, SetForegroundColor};
@@ -27,32 +28,24 @@ fn main() -> Result<()> {
     let mut screen_state = gs.make_screen_state();
 
     // - test, j'ajoute des obstacles
-    gs.entities.push(Entity::Obstacle(Obstacle::single(10, 10)));
-    gs.entities.push(Entity::Obstacle(Obstacle::single(10, 11)));
-    gs.set_element_on_map(2, 2, map::walls::Wall::new("_SE_").to_box());
-//    gs.entities.push(Entity::Obstacle(Obstacle::wall("_SE_", 2, 2)));
+    gs.set_element_on_map(10, 10, map::obstacle::Obstacle::new().to_box()).unwrap();
+    gs.set_element_on_map(10, 11, map::obstacle::Obstacle::new().to_box()).unwrap();
+    gs.set_element_on_map(2, 2, map::walls::Wall::new("_SE_").to_box()).unwrap();
     for i in 3..24 {
-        gs.set_element_on_map(i, 2, map::walls::Wall::new("__EW").to_box());
-//        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 2)));
-        gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box());
-//        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)))
+        gs.set_element_on_map(i, 2, map::walls::Wall::new("__EW").to_box()).unwrap();
+        gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box()).unwrap();
     };
 
-    gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box());
-//    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 24, 2)));
+    gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box()).unwrap();
     for j in 3..30 {
         if j != 10 {
-            gs.set_element_on_map(24, j, map::walls::Wall::new("NS__").to_box());
-//            gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 24, j)))
+            gs.set_element_on_map(24, j, map::walls::Wall::new("NS__").to_box()).unwrap();
         };
-        gs.set_element_on_map(2, j, map::walls::Wall::new("NS__").to_box());
-//        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)))
+        gs.set_element_on_map(2, j, map::walls::Wall::new("NS__").to_box()).unwrap();
     };
 
-    gs.set_element_on_map(24, 30, map::walls::Wall::new("N__W").to_box());
-    gs.set_element_on_map( 2, 30, map::walls::Wall::new("N_E_").to_box());
-//    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 24, 30)));
-  //  gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
+    gs.set_element_on_map(24, 30, map::walls::Wall::new("N__W").to_box()).unwrap();
+    gs.set_element_on_map( 2, 30, map::walls::Wall::new("N_E_").to_box()).unwrap();
     // -
 
     // - test, j'ajoute un log

@@ -2,6 +2,8 @@ use crossterm::style::Color;
 use super::MapElement;
 use crate::colors::*;
 
+use std::boxed::Box;
+
 
 #[derive(Debug, Copy, Clone)]
 pub struct Obstacle {
@@ -14,9 +16,15 @@ impl Obstacle {
             sprite: '\u{25A0}'
         }
     }
+
 }
 
 impl MapElement for Obstacle {
+
+    fn to_box(self) -> Box<dyn MapElement> {
+        Box::new(self)
+    }
+
     fn can_step_on(&self) -> bool {
         true
     }

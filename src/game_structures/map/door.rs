@@ -26,6 +26,11 @@ impl Door {
 }
 
 impl MapElement for Door {
+
+    fn to_box(self) -> Box<dyn MapElement> {
+        Box::new(self)
+    }
+
     fn can_step_on(&self) -> bool {
         self.opened
     }
