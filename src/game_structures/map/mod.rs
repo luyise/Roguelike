@@ -1,15 +1,14 @@
-use std::boxed::Box;
 use crossterm::style::Color;
+use std::boxed::Box;
 
 use super::ScreenState;
 
-pub mod floor;
 pub mod door;
-pub mod walls;
+pub mod floor;
 pub mod obstacle;
+pub mod walls;
 
 pub trait MapElement {
-
     fn to_box(self) -> Box<dyn MapElement>;
 
     fn can_step_on(&self) -> bool;
@@ -61,10 +60,15 @@ impl Map {
             Ok(&mut *self.data[y][x])
         } else {
             Err(())
-        } 
+        }
     }
 
-    pub fn set_element(&mut self, x: usize, y: usize, map_element: Box<dyn MapElement>) -> Result<(), ()> {
+    pub fn set_element(
+        &mut self,
+        x: usize,
+        y: usize,
+        map_element: Box<dyn MapElement>,
+    ) -> Result<(), ()> {
         if x < self.width && y < self.height {
             self.data[y][x] = map_element;
             Ok(())
@@ -91,8 +95,7 @@ impl Map {
             for x in 0..(crate::options::N_WIDTH as usize) {
                 ss.set_element(x, y, self.get_char(x + left, y + top))
             }
-        };
+        }
         ss
     }
-
 }

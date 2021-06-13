@@ -1,3 +1,2 @@
-
-pub mod grid;
 pub mod chars;
+pub mod grid;

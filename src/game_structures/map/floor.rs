@@ -1,7 +1,6 @@
-use crossterm::style::Color;
 use super::MapElement;
 use crate::colors::*;
-
+use crossterm::style::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Floor {
@@ -10,18 +9,15 @@ pub struct Floor {
 
 impl Floor {
     pub fn new() -> Self {
-        Self {
-            sprite: ' '
-        }
+        Self { sprite: ' ' }
     }
 }
 
 impl MapElement for Floor {
-
     fn to_box(self) -> Box<dyn MapElement> {
         Box::new(self)
     }
-    
+
     fn can_step_on(&self) -> bool {
         true
     }

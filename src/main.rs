@@ -1,19 +1,19 @@
-pub mod nasty_array;
 pub mod colors;
-pub mod game_structures;
-pub mod options;
-pub mod graphics;
 pub mod display;
+pub mod game_structures;
+pub mod graphics;
+pub mod nasty_array;
+pub mod options;
 
 use colors::*;
+use display::*;
 use game_structures::{map, GameState};
 use options::*;
-use display::*;
 
+use game_structures::map::MapElement;
 use std::boxed::Box;
 use std::io::stdout;
 use std::time::Duration;
-use game_structures::map::MapElement;
 
 use crossterm::event::{Event, KeyCode};
 use crossterm::style::{Color, SetBackgroundColor};
@@ -21,32 +21,42 @@ use crossterm::terminal::ClearType;
 use crossterm::{cursor, event, execute, terminal, Result};
 
 fn main() -> Result<()> {
-
     let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
-    map.set_element(24, 10, Box::new(map::door::Door::vertical())).unwrap();
+    map.set_element(24, 10, Box::new(map::door::Door::vertical()))
+        .unwrap();
 
     let mut gs = GameState::new(map);
     let mut screen_state = gs.make_screen_state();
 
     // - test, j'ajoute des obstacles
-    gs.set_element_on_map(10, 10, map::obstacle::Obstacle::new().to_box()).unwrap();
-    gs.set_element_on_map(10, 11, map::obstacle::Obstacle::new().to_box()).unwrap();
-    gs.set_element_on_map(2, 2, map::walls::Wall::new("_SE_").to_box()).unwrap();
+    gs.set_element_on_map(10, 10, map::obstacle::Obstacle::new().to_box())
+        .unwrap();
+    gs.set_element_on_map(10, 11, map::obstacle::Obstacle::new().to_box())
+        .unwrap();
+    gs.set_element_on_map(2, 2, map::walls::Wall::new("_SE_").to_box())
+        .unwrap();
     for i in 3..24 {
-        gs.set_element_on_map(i, 2, map::walls::Wall::new("__EW").to_box()).unwrap();
-        gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box()).unwrap();
-    };
+        gs.set_element_on_map(i, 2, map::walls::Wall::new("__EW").to_box())
+            .unwrap();
+        gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box())
+            .unwrap();
+    }
 
-    gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box()).unwrap();
+    gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box())
+        .unwrap();
     for j in 3..30 {
         if j != 10 {
-            gs.set_element_on_map(24, j, map::walls::Wall::new("NS__").to_box()).unwrap();
+            gs.set_element_on_map(24, j, map::walls::Wall::new("NS__").to_box())
+                .unwrap();
         };
-        gs.set_element_on_map(2, j, map::walls::Wall::new("NS__").to_box()).unwrap();
-    };
+        gs.set_element_on_map(2, j, map::walls::Wall::new("NS__").to_box())
+            .unwrap();
+    }
 
-    gs.set_element_on_map(24, 30, map::walls::Wall::new("N__W").to_box()).unwrap();
-    gs.set_element_on_map( 2, 30, map::walls::Wall::new("N_E_").to_box()).unwrap();
+    gs.set_element_on_map(24, 30, map::walls::Wall::new("N__W").to_box())
+        .unwrap();
+    gs.set_element_on_map(2, 30, map::walls::Wall::new("N_E_").to_box())
+        .unwrap();
     // -
 
     // - test, j'ajoute un log
@@ -97,39 +107,38 @@ fn main() -> Result<()> {
 
                     KeyCode::Char('i') => {
                         gs.interact(-1, -1);
-                    },
+                    }
                     KeyCode::Char('k') => {
                         gs.interact(-1, 0);
-                    },
+                    }
                     KeyCode::Char(';') => {
                         gs.interact(-1, 1);
-                    },
+                    }
 
                     KeyCode::Char('o') => {
                         gs.interact(0, -1);
-                    },
+                    }
                     KeyCode::Char('f') => {
                         gs.interact(0, 0);
-                    },
+                    }
                     KeyCode::Char(':') => {
                         gs.interact(0, 1);
-                    },
+                    }
 
                     KeyCode::Char('p') => {
                         gs.interact(1, -1);
-                    },
+                    }
                     KeyCode::Char('m') => {
                         gs.interact(1, 0);
-                    },
+                    }
                     KeyCode::Char('=') | KeyCode::Char('!') => {
                         gs.interact(1, 1);
-                    },
-
+                    }
 
                     // Exit command : [esc]
                     KeyCode::Esc => {
                         execute!(stdout(), cursor::Show, terminal::Clear(ClearType::All))?;
-                        break 'running
+                        break 'running;
                     }
                     _ => {}
                 },

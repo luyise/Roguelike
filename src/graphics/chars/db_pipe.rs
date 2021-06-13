@@ -27,8 +27,5 @@ const  W : u8 = 1 << 3;
 */
 
 pub const TABLE: [char; 16] = [
-    ____, N___, _S__, NS__,
-    __E_, N_E_, _SE_, NSE_,
-    ___W, N__W, _S_W, NS_W,
-    __EW, N_EW, _SEW, NSEW
+    ____, N___, _S__, NS__, __E_, N_E_, _SE_, NSE_, ___W, N__W, _S_W, NS_W, __EW, N_EW, _SEW, NSEW,
 ];

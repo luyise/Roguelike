@@ -1,7 +1,7 @@
-use crossterm::style::Color;
 use super::MapElement;
 use crate::colors::*;
 use crate::graphics::chars::db_pipe;
+use crossterm::style::Color;
 use std::boxed::Box;
 
 #[derive(Debug, Copy, Clone)]
@@ -24,8 +24,8 @@ impl Wall {
                 "_SE_" => db_pipe::_SE_,
                 "__EW" => db_pipe::__EW,
                 "_S_W" => db_pipe::_S_W,
-                _ => panic!("Invalid argument for wall function")
-            }
+                _ => panic!("Invalid argument for wall function"),
+            },
         }
     }
 }
@@ -65,7 +65,7 @@ impl MapElement for Wall {
             String::from("                    "),
             String::from("                    "),
             String::from("                    "),
-            String::from("                    ")
+            String::from("                    "),
         ])
     }
 }

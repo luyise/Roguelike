@@ -1,7 +1,6 @@
-use crossterm::style::Color;
 use super::MapElement;
 use crate::colors::*;
-
+use crossterm::style::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Door {
@@ -26,7 +25,6 @@ impl Door {
 }
 
 impl MapElement for Door {
-
     fn to_box(self) -> Box<dyn MapElement> {
         Box::new(self)
     }
@@ -76,7 +74,7 @@ impl MapElement for Door {
                 String::from("                    "),
                 String::from("                    "),
                 String::from("                    "),
-                String::from("                    ")
+                String::from("                    "),
             ])
         } else {
             Some([
@@ -88,7 +86,7 @@ impl MapElement for Door {
                 String::from("                    "),
                 String::from("                    "),
                 String::from("                    "),
-                String::from("                    ")
+                String::from("                    "),
             ])
         }
     }

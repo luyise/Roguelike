@@ -5,9 +5,9 @@ pub mod log;
 pub mod map;
 pub mod obstacles;
 
-use player::*;
-use obstacles::*;
 use log::Log;
+use obstacles::*;
+use player::*;
 
 use crate::colors::*;
 use crate::options::*;
@@ -23,7 +23,7 @@ pub struct Point {
 pub struct NonPlayerCharacter {
     pos: Point,
     sprite: char,
-    info: [String; 9],                  // /!\ Une information se déclare dans un tableau de 9 lignes, chacune d'au plus 20 charactère /!\ \\
+    info: [String; 9], // /!\ Une information se déclare dans un tableau de 9 lignes, chacune d'au plus 20 charactère /!\ \\
 }
 
 pub struct Ground {
@@ -75,7 +75,7 @@ pub struct GameModifications {
     pub screen_changed: [[bool; N_HEIGHT as usize]; N_WIDTH as usize],
     pub looking_changed: bool,
     pub look_data_changed: bool,
-    pub logs_changed: bool
+    pub logs_changed: bool,
 }
 
 impl GameModifications {
@@ -114,7 +114,7 @@ pub struct GameState {
     pub map: map::Map,
     pub modifications: GameModifications,
 
-    pub logs: Log
+    pub logs: Log,
 }
 
 impl GameState {
@@ -126,12 +126,14 @@ impl GameState {
             looking: false,
             map,
             modifications: GameModifications::new(),
-            logs: Log::new()
+            logs: Log::new(),
         }
     }
 
     pub fn make_screen_state(&self) -> ScreenState {
-        let mut ss = self.map.get_screen(self.screen_pos.x as usize, self.screen_pos.y as usize);
+        let mut ss = self
+            .map
+            .get_screen(self.screen_pos.x as usize, self.screen_pos.y as usize);
 
         for entity in &self.entities {
             let pos = entity.get_pos();
@@ -144,14 +146,14 @@ impl GameState {
                 ss.set_element(
                     (pos.x - self.screen_pos.x) as usize,
                     (pos.y - self.screen_pos.y) as usize,
-                    (entity.get_char(), entity.get_clr())
+                    (entity.get_char(), entity.get_clr()),
                 )
             }
         }
         ss.set_element(
             (self.player.pos.x - self.screen_pos.x) as usize,
             (self.player.pos.y - self.screen_pos.y) as usize,
-            (self.player.sprite, PLAYER_CLR)
+            (self.player.sprite, PLAYER_CLR),
         );
         ss
     }
@@ -166,18 +168,17 @@ impl GameState {
     }
 
     pub fn get_info(&self) -> [[Option<[String; 9]>; 3]; 3] {
-        let mut infos = [
-                [None, None, None],
-                [None, None, None],
-                [None, None, None],
-            ];
-        
+        let mut infos = [[None, None, None], [None, None, None], [None, None, None]];
+
         let inf_x = if self.player.pos.x == 0 { 1 } else { 0 };
         let inf_y = if self.player.pos.y == 0 { 1 } else { 0 };
-        
+
         for y in inf_y..3 {
             for x in inf_x..3 {
-                match self.map.get_element(self.player.pos.x as usize + x - 1, self.player.pos.y as usize + y - 1) {
+                match self.map.get_element(
+                    self.player.pos.x as usize + x - 1,
+                    self.player.pos.y as usize + y - 1,
+                ) {
                     Err(()) => (),
                     Ok(element) => infos[y][x] = element.get_info(),
                 }
@@ -216,9 +217,9 @@ impl GameState {
         match self.map.get_element(nx as usize, ny as usize) {
             Ok(element) => {
                 if !element.can_step_on() {
-                    return
+                    return;
                 }
-            },
+            }
             Err(()) => return,
         };
 
@@ -268,13 +269,18 @@ impl GameState {
                         self.push_log(m, clr)
                     };
                     Ok(())
-                },
+                }
                 Err(()) => Err(()),
             }
         }
     }
 
-    pub fn set_element_on_map(&mut self, x: usize, y: usize, element: Box<dyn map::MapElement>) -> Result<(), ()> {
+    pub fn set_element_on_map(
+        &mut self,
+        x: usize,
+        y: usize,
+        element: Box<dyn map::MapElement>,
+    ) -> Result<(), ()> {
         self.map.set_element(x, y, element)
     }
 }

@@ -1,8 +1,8 @@
-use crate::colors::*;
 use super::Point;
-use std::convert::TryInto;
+use crate::colors::*;
 use crate::graphics::chars::*;
 use crossterm::style::Color;
+use std::convert::TryInto;
 
 pub struct Obstacle {
     pub color: Color,
@@ -17,20 +17,22 @@ impl Obstacle {
         Obstacle {
             color: OBSTACLES_CLR,
             state: String::new(),
-            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
+            pos: Point {
+                x: i.try_into().unwrap(),
+                y: j.try_into().unwrap(),
+            },
             sprite: '\u{25A0}',
-            info: 
-                [
-                    String::from(" A U+25A0 character "),
-                    String::from("that seems to have  "),
-                    String::from("arrived there by    "),
-                    String::from("mistake.            "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    ")
-                ]
+            info: [
+                String::from(" A U+25A0 character "),
+                String::from("that seems to have  "),
+                String::from("arrived there by    "),
+                String::from("mistake.            "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+            ],
         }
     }
 
@@ -47,26 +49,28 @@ impl Obstacle {
             "_SE_" => db_pipe::_SE_,
             "__EW" => db_pipe::__EW,
             "_S_W" => db_pipe::_S_W,
-            _ => panic!("Invalid argument for wall function")
+            _ => panic!("Invalid argument for wall function"),
         };
 
         Obstacle {
             color: WALLS_CLR,
             state: String::new(),
-            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
+            pos: Point {
+                x: i.try_into().unwrap(),
+                y: j.try_into().unwrap(),
+            },
             sprite: c,
-            info: 
-                [
-                    String::from(" A wall.            "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    ")
-                ]
+            info: [
+                String::from(" A wall.            "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+            ],
         }
     }
 
@@ -74,26 +78,28 @@ impl Obstacle {
         let c = match &*s.to_lowercase() {
             "v" | "ver" | "vert" => sg_pipe::NS__,
             "h" | "hor" | "hori" => sg_pipe::__EW,
-            _ => panic!("Invalid argument for door function")
+            _ => panic!("Invalid argument for door function"),
         };
 
         Obstacle {
             color: DOORS_CLR,
             state: String::from("closed"),
-            pos: Point { x: i.try_into().unwrap(), y: j.try_into().unwrap() },
+            pos: Point {
+                x: i.try_into().unwrap(),
+                y: j.try_into().unwrap(),
+            },
             sprite: c,
-            info:
-                [
-                    String::from(" A closed door, it  "),
-                    String::from("doesn't seems to be "),
-                    String::from("locked.             "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    "),
-                    String::from("                    ")
-                ]
+            info: [
+                String::from(" A closed door, it  "),
+                String::from("doesn't seems to be "),
+                String::from("locked.             "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+                String::from("                    "),
+            ],
         }
     }
 }

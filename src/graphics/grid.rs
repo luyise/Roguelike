@@ -1,16 +1,14 @@
-
-
 use crate::graphics::chars;
 use std::cmp::{max, min};
 
-const N  : u8 = 1 << 0;
-const S  : u8 = 1 << 1;
-const E  : u8 = 1 << 2;
-const W  : u8 = 1 << 3;
-const NW : u8 = 1 << 4;
-const SW : u8 = 1 << 5;
-const SE : u8 = 1 << 6;
-const NE : u8 = 1 << 7;
+const N: u8 = 1 << 0;
+const S: u8 = 1 << 1;
+const E: u8 = 1 << 2;
+const W: u8 = 1 << 3;
+const NW: u8 = 1 << 4;
+const SW: u8 = 1 << 5;
+const SE: u8 = 1 << 6;
+const NE: u8 = 1 << 7;
 
 #[derive(Debug, Clone, Copy)]
 pub enum GridStyle {
@@ -18,17 +16,15 @@ pub enum GridStyle {
     Double,
 }
 
-
 // Structure to grad the lines for a grid
 pub struct Grid {
-    map : Vec<Vec<u8>>,
+    map: Vec<Vec<u8>>,
 }
 
 impl Grid {
-
     pub fn new(width: usize, height: usize) -> Self {
         Self {
-            map : vec![vec![0; width]; height]
+            map: vec![vec![0; width]; height],
         }
     }
 
@@ -43,9 +39,15 @@ impl Grid {
         }
     }
 
-
-    // Need to have x1 <= x2 and y1 <= y2 fill the rectangle 
-    pub fn fill_rect(&mut self, x1: usize, y1: usize, x2: usize, y2 : usize, index: u8) -> Result<(), ()> {
+    // Need to have x1 <= x2 and y1 <= y2 fill the rectangle
+    pub fn fill_rect(
+        &mut self,
+        x1: usize,
+        y1: usize,
+        x2: usize,
+        y2: usize,
+        index: u8,
+    ) -> Result<(), ()> {
         if y1 > y2 || y2 >= self.map.len() || x1 > x2 || x2 >= self.map.len() {
             Err(())
         } else {
@@ -58,9 +60,15 @@ impl Grid {
         }
     }
 
-
     // Draw a line of id: index from (x1, y1) to (x2, y2). The line must be horizontal or vertical!
-    pub fn draw_line(&mut self, x1: usize, y1: usize, x2: usize, y2 : usize, index: u8) -> Result<(), ()> {
+    pub fn draw_line(
+        &mut self,
+        x1: usize,
+        y1: usize,
+        x2: usize,
+        y2: usize,
+        index: u8,
+    ) -> Result<(), ()> {
         if x1 == x2 {
             if !self.map.is_empty() && self.map[0].len() > x1 {
                 if self.map.len() > y1 && self.map.len() > y2 {
@@ -93,7 +101,6 @@ impl Grid {
             }
         }
     }
-
 
     // Choose type of grid
     pub fn to_string(&self, grid_type: GridStyle) -> Vec<String> {
