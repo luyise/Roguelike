@@ -165,7 +165,9 @@ impl GameState {
             let dx = x - self.player.pos.x;
             let dy = y - self.player.pos.y;
             if -1 <= dx && dx <= 1 && -1 <= dy && dy <= 1 {
-                infos[(dy + 1) as usize][(dx + 1) as usize] = Some(info.clone());
+                if infos[(dy + 1) as usize][(dx + 1) as usize] == None {
+                    infos[(dy + 1) as usize][(dx + 1) as usize] = Some(info.clone());
+                }
             }
         }
 

@@ -226,36 +226,30 @@ fn clean_environment() -> Result<()> {
 
 fn disp_look_info(gs: &GameState) -> Result<()> {
 
-    let empty_strip: String = " ".repeat(20usize);
+    let empty_strip: String = " ".repeat(20_usize);
+    let data = gs.get_info();
 
-    // On affiche les informations relatives à chaque case adjacente au personnage
-    for i in (-1)..=1 as i16 {
-        for j in (-1)..=1 as i16 {
-
-            for l in 0..9 {
-                execute!(
-                    stdout(),
-                    cursor::MoveTo((N_WIDTH as i16 + 2 + 15 + 1 + (i+1) * (20 + 1)).try_into().unwrap(), (1 + 3 + 1 + (j+1) * (9 + 1) + l).try_into().unwrap()),
-                    Print(&empty_strip)
-                )?
-            };
-
-            let x: i16 = gs.player.pos.x + i;
-            let y: i16 = gs.player.pos.y + j;
-            if x >= 0 && x < MAP_WIDTH.try_into().unwrap() && y >= 0 && y < MAP_WIDTH.try_into().unwrap() {
-                match get_entity(gs, x, y) {
-                    Some(e) => {
-                        for l in 0..9 {
-                            execute!(
-                                stdout(),
-                                cursor::MoveTo((N_WIDTH as i16 + 2 + 15 + 1 + (i+1) * (20 + 1)).try_into().unwrap(), (1 + 3 + 1 + (j+1) * (9 + 1) + l).try_into().unwrap()),
-                                Print(&e.get_info()[l as usize])
-                            )?
-                        };
+    for y in 0..3 {
+        for x in 0..3 {
+            match &data[y][x] {
+                None => {
+                    for l in 0..9 {
+                        execute!(
+                            stdout(),
+                            cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + (x as u16) * (20 + 1), 1 + 3 + 1 + (y as u16) * (9 + 1) + l),
+                            Print(&empty_strip)
+                        )?
                     }
-                    None => {}
+                },
+                Some(d) => {
+                    for l in 0..9 {
+                        execute!(
+                            stdout(),
+                            cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + (x as u16) * (20 + 1), 1 + 3 + 1 + (y as u16) * (9 + 1) + l),
+                            Print(&d[l as usize])
+                        )?
+                    }
                 }
-
             }
         }
     }
