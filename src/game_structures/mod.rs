@@ -94,6 +94,18 @@ pub struct ScreenState {
     pub grid: [[(char, Color); N_HEIGHT as usize]; N_WIDTH as usize],
 }
 
+impl ScreenState {
+    pub fn new() -> Self {
+        Self {
+            grid: [[(' ', Color::Black); N_HEIGHT as usize]; N_WIDTH as usize],
+        }
+    }
+
+    pub fn set_element(&mut self, x: usize, y: usize, e: (char, Color)) {
+        self.grid[x][y] = e;
+    }
+}
+
 pub struct GameState {
     pub player: Player,
     pub entities: Vec<Entity>,
@@ -119,7 +131,7 @@ impl GameState {
     }
 
     pub fn make_screen_state(&self) -> ScreenState {
-        let mut grid = [[(' ', Color::Black); N_HEIGHT as usize]; N_WIDTH as usize];
+        let mut ss = self.map.get_screen(self.screen_pos.x as usize, self.screen_pos.y as usize);
 
         for entity in &self.entities {
             let pos = entity.get_pos();
@@ -129,14 +141,19 @@ impl GameState {
                 && self.screen_pos.y <= pos.y
                 && pos.y < self.screen_pos.y + (N_HEIGHT as i16)
             {
-                grid[(pos.x - self.screen_pos.x) as usize][(pos.y - self.screen_pos.y) as usize] =
+                ss.set_element(
+                    (pos.x - self.screen_pos.x) as usize,
+                    (pos.y - self.screen_pos.y) as usize,
                     (entity.get_char(), entity.get_clr())
+                )
             }
         }
-        grid[(self.player.pos.x - self.screen_pos.x) as usize]
-            [(self.player.pos.y - self.screen_pos.y) as usize] = (self.player.sprite, PLAYER_CLR);
-
-        ScreenState { grid: grid }
+        ss.set_element(
+            (self.player.pos.x - self.screen_pos.x) as usize,
+            (self.player.pos.y - self.screen_pos.y) as usize,
+            (self.player.sprite, PLAYER_CLR)
+        );
+        ss
     }
 
     pub fn refresh_modifications(&mut self) {
@@ -255,5 +272,9 @@ impl GameState {
                 Err(()) => Err(()),
             }
         }
+    }
+
+    pub fn set_element_on_map(&mut self, x: usize, y: usize, element: Box<dyn map::MapElement>) -> Result<(), ()> {
+        self.map.set_element(x, y, element)
     }
 }

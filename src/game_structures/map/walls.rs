@@ -1,7 +1,8 @@
 use crossterm::style::Color;
 use super::MapElement;
 use crate::colors::*;
-
+use crate::graphics::chars::db_pipe;
+use std::boxed::Box;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Wall {
@@ -9,8 +10,8 @@ pub struct Wall {
 }
 
 impl Wall {
-    pub fn new(s: &str) -> self {
-        self {
+    pub fn new(s: &str) -> Self {
+        Self {
             sprite: match s {
                 "NSEW" => db_pipe::NSEW,
                 "_SEW" => db_pipe::_SEW,
@@ -27,9 +28,13 @@ impl Wall {
             }
         }
     }
+
+    pub fn to_box(self) -> Box<Self> {
+        Box::new(self)
+    }
 }
 
-impl MapElement for Floor {
+impl MapElement for Wall {
     fn can_step_on(&self) -> bool {
         false
     }
@@ -50,8 +55,8 @@ impl MapElement for Floor {
         WALLS_CLR
     }
 
-    fn get_info(&self) -> [String; 9] {
-        [
+    fn get_info(&self) -> Option<[String; 9]> {
+        Some([
             String::from(" A wall.            "),
             String::from("                    "),
             String::from("                    "),
@@ -61,6 +66,6 @@ impl MapElement for Floor {
             String::from("                    "),
             String::from("                    "),
             String::from("                    ")
-        ]
+        ])
     }
 }

@@ -1,8 +1,14 @@
 use std::boxed::Box;
 use crossterm::style::Color;
 
+use crate::colors;
+
+use super::ScreenState;
+
 pub mod floor;
 pub mod door;
+pub mod walls;
+pub mod obstacle;
 
 pub trait MapElement {
     fn can_step_on(&self) -> bool;
@@ -73,4 +79,19 @@ impl Map {
     pub fn get_height(&self) -> usize {
         self.height
     }
+
+    fn get_char(&self, x: usize, y: usize) -> (char, Color) {
+        (self.data[y][x].get_char(), self.data[y][x].get_color())
+    }
+
+    pub fn get_screen(&self, left: usize, top: usize) -> ScreenState {
+        let mut ss = ScreenState::new();
+        for y in 0..(crate::options::N_HEIGHT as usize) {
+            for x in 0..(crate::options::N_WIDTH as usize) {
+                ss.set_element(x, y, self.get_char(x + left, y + top))
+            }
+        };
+        ss
+    }
+
 }
