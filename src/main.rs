@@ -30,21 +30,30 @@ fn main() -> Result<()> {
     // - test, j'ajoute des obstacles
     gs.entities.push(Entity::Obstacle(Obstacle::single(10, 10)));
     gs.entities.push(Entity::Obstacle(Obstacle::single(10, 11)));
-
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("_SE_", 2, 2)));
+    gs.set_element_on_map(2, 2, map::walls::Wall::new("_SE_").to_box());
+//    gs.entities.push(Entity::Obstacle(Obstacle::wall("_SE_", 2, 2)));
     for i in 3..24 {
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 2)));
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)))
+        gs.set_element_on_map(i, 2, map::walls::Wall::new("__EW").to_box());
+//        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 2)));
+        gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box());
+//        gs.entities.push(Entity::Obstacle(Obstacle::wall("__EW", i, 30)))
     };
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 24, 2)));
+
+    gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box());
+//    gs.entities.push(Entity::Obstacle(Obstacle::wall("_S_W", 24, 2)));
     for j in 3..30 {
         if j != 10 {
-            gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 24, j)))
+            gs.set_element_on_map(24, j, map::walls::Wall::new("NS__").to_box());
+//            gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 24, j)))
         };
-        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)))
+        gs.set_element_on_map(2, j, map::walls::Wall::new("NS__").to_box());
+//        gs.entities.push(Entity::Obstacle(Obstacle::wall("NS__", 2, j)))
     };
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 24, 30)));
-    gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
+    
+    gs.set_element_on_map(24, 30, map::walls::Wall::new("N__W").to_box());
+    gs.set_element_on_map( 2, 30, map::walls::Wall::new("N_E_").to_box());
+//    gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 24, 30)));
+  //  gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
 
     // and a door
    // gs.entities.push(Entity::Obstacle(Obstacle::door("VERT", 24, 10)));
