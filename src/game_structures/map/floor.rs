@@ -21,12 +21,12 @@ impl MapElement for Floor {
         true
     }
 
-    fn interact_short(&mut self) -> String {
-        String::from("Nothing here")
+    fn interact_short(&mut self) -> (String, Color) {
+        (String::from("Nothing here"), Color::White)
     }
 
-    fn interact_long(&mut self) -> String {
-        String::from("Nothing here")
+    fn interact_long(&mut self) -> (String, Color) {
+        (String::from("Nothing here"), Color::White)
     }
 
     fn get_char(&self) -> char {

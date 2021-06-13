@@ -7,9 +7,9 @@ pub mod door;
 pub trait MapElement {
     fn can_step_on(&self) -> bool;
 
-    fn interact_short(&mut self) -> String;
+    fn interact_short(&mut self) -> (String, Color);
 
-    fn interact_long(&mut self) -> String;
+    fn interact_long(&mut self) -> (String, Color);
 
     fn get_char(&self) -> char;
 

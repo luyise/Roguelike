@@ -1,3 +1,4 @@
+pub mod nasty_array;
 pub mod colors;
 pub mod game_structures;
 pub mod options;
@@ -11,7 +12,6 @@ use options::*;
 use std::boxed::Box;
 use std::io::stdout;
 use std::time::Duration;
-use std::convert::TryInto;
 
 use crossterm::event::{Event, KeyCode};
 use crossterm::style::{Color, Print, SetBackgroundColor, SetForegroundColor};
@@ -20,9 +20,8 @@ use crossterm::{cursor, event, execute, terminal, Result};
 
 fn main() -> Result<()> {
 
-
     let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
-    map.set_element(24, 10, Box::new(map::door::Door::vertical()));
+    map.set_element(24, 10, Box::new(map::door::Door::vertical())).unwrap();
 
     let mut gs = GameState::new(map);
     let mut screen_state = gs.make_screen_state();
@@ -45,9 +44,10 @@ fn main() -> Result<()> {
     };
     gs.entities.push(Entity::Obstacle(Obstacle::wall("N__W", 24, 30)));
     gs.entities.push(Entity::Obstacle(Obstacle::wall("N_E_", 2, 30)));
+    // -
 
-    // and a door
-   // gs.entities.push(Entity::Obstacle(Obstacle::door("VERT", 24, 10)));
+    // - test, j'ajoute un log
+    gs.push_log(String::from("This is an information!"), Color::Cyan);
     // -
 
     let (_cols, _rows) = terminal::size()?;
@@ -62,6 +62,7 @@ fn main() -> Result<()> {
     terminal::enable_raw_mode()?;
     print_screen_background()?;
     print_screen(&screen_state)?;
+    disp_logs(&gs)?;
 
     'running: loop {
         // O. keeping track of what needs to be refreshed at display time // will be replaced by the "modifications" entry of struct GameState
@@ -104,6 +105,9 @@ fn main() -> Result<()> {
                     KeyCode::Char('o') => {
                         gs.interact(0, -1);
                     },
+                    KeyCode::Char('f') => {
+                        gs.interact(0, 0);
+                    },
                     KeyCode::Char(':') => {
                         gs.interact(0, 1);
                     },
@@ -134,35 +138,29 @@ fn main() -> Result<()> {
 
         // II. Update
         screen_state = gs.make_screen_state();
-        if gs.modifications.looking_changed {
-            if gs.looking {
-                disp_look_cases()?;
-                disp_look_info(&gs)?
-            } else {
-                clean_environment()?
-            }
-        } else if gs.modifications.moved_while_looking {
-            disp_look_info(&gs)?
-        };
 
         // III. Render
         refresh_screen(old_screen_state, &screen_state)?;
-        execute!(
-            stdout(),
-            SetForegroundColor(Color::White),
-            cursor::MoveTo(1, N_HEIGHT + 2),
-        )?;
-        println!("This is an information! ");
-        execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 3),)?;
-        println!(
-            "DEBUG: player.pos : {} {}      ",
-            gs.player.pos.x, gs.player.pos.y
-        );
-        execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 4),)?;
-        println!(
-            "DEBUG: screen.pos : {} {}      ",
-            gs.screen_pos.x, gs.screen_pos.y
-        );
+        refresh_logs(&gs)?;
+        refresh_environment(&gs)?;
+
+        // execute!(
+        //     stdout(),
+        //     SetForegroundColor(Color::White),
+        //     cursor::MoveTo(1, N_HEIGHT + 2),
+        // )?;
+
+        // println!("This is an information! ");
+        // execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 3),)?;
+        // println!(
+        //     "DEBUG: player.pos : {} {}      ",
+        //     gs.player.pos.x, gs.player.pos.y
+        // );
+        // execute!(stdout(), cursor::MoveTo(1, N_HEIGHT + 4),)?;
+        // println!(
+        //     "DEBUG: screen.pos : {} {}      ",
+        //     gs.screen_pos.x, gs.screen_pos.y
+        // );
 
         // IV. Time management
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30))
@@ -215,12 +213,57 @@ fn refresh_screen(
     Ok(())
 }
 
+fn clean_logs() -> Result<()> {
+    let empty_strip: String = " ".repeat(N_WIDTH as usize);
+    for j in (N_HEIGHT+2)..(DISP_HEIGHT + N_HEIGHT+2) {
+        execute!(stdout(),
+            cursor::MoveTo(1, j),
+            Print(&empty_strip)
+        )?
+    };
+    Ok(())
+}
+
+fn disp_logs(gs: &GameState) -> Result<()> {
+    for j in 0..DISP_HEIGHT as usize {
+        execute!(
+            stdout(),
+            cursor::MoveTo(1, N_HEIGHT+2+(j as u16)),
+            SetForegroundColor(gs.logs.colors[j]),
+            Print(&gs.logs.messages[j])
+        )?
+    };
+    Ok(())
+}
+
+fn refresh_logs(gs : &GameState) -> Result<()> {
+    if gs.modifications.logs_changed {
+        clean_logs()?;
+        disp_logs(gs)?;
+    };
+    Ok(())
+}
+
 fn clean_environment() -> Result<()> {
     let empty_strip: String = " ".repeat(94usize);
     for j in 1..(SCREEN_HEIGHT - 1) {
         execute!(stdout(), cursor::MoveTo(N_WIDTH + 2, j))?;
         execute!(stdout(), Print(&empty_strip))?
     }
+    Ok(())
+}
+
+fn refresh_environment(gs : &GameState) -> Result<()> {
+    if gs.modifications.looking_changed {
+        if gs.looking {
+            disp_look_cases()?;
+            disp_look_info(&gs)?
+        } else {
+            clean_environment()?
+        }
+    } else if gs.modifications.look_data_changed {
+        disp_look_info(&gs)?
+    };
     Ok(())
 }
 
@@ -245,6 +288,7 @@ fn disp_look_info(gs: &GameState) -> Result<()> {
                     for l in 0..9 {
                         execute!(
                             stdout(),
+                            SetForegroundColor(Color::White),
                             cursor::MoveTo(N_WIDTH + 2 + 15 + 1 + (x as u16) * (20 + 1), 1 + 3 + 1 + (y as u16) * (9 + 1) + l),
                             Print(&d[l as usize])
                         )?
@@ -301,19 +345,6 @@ fn disp_look_cases() -> Result<()> {
         Print(String::from("[!]/[=]"))
     )?;
     Ok(())
-}
-
-fn get_entity(gs: &GameState, x: i16, y: i16) -> Option<&Entity> {
-    if 0 <= x && x < MAP_WIDTH.try_into().unwrap() && 0 <= y && y < SCREEN_HEIGHT.try_into().unwrap() {
-        for e in gs.entities.iter() {
-            let e_pos = e.get_pos();
-            if e_pos.x == x && e_pos.y == y {
-                return Some(&e)
-            }
-        }
-    };
-
-    return None
 }
 
 fn print_screen_background() -> Result<()> {
