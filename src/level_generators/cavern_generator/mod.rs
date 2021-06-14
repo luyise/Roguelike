@@ -170,7 +170,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
         let mut cc_bd_aux: Vec<Vec<(usize, usize)>> = vec![vec![]];
 
         'checking_split: for cell in cc_list[cc].iter() {
-            if cc_grid[cell.0][cell.1] == 0 {
+            if cc_grid[cell.0][cell.1] == 0 && grid[cell.0][cell.1] == EMPTY {
                 cc_aux += 1;
                 cc_list_aux[0][0].0 += 1;
                 cc_list_aux.push(Vec::new());
@@ -188,17 +188,6 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                 }
             }
         };
-
-        if cc_list_aux[0][0].0 <= 1 {
-            println!("didn't succeed with this claw");
-            for cell in cc_list[cc].iter() {
-                cc_grid[cell.0][cell.1] = cc
-            };
-            for cell in modifs.iter() {
-                grid[cell.0][cell.1] = EMPTY
-            };
-            return false
-        }
 
         for cell in cc_list[cc].iter() {
             cc_grid[cell.0][cell.1] = 0
