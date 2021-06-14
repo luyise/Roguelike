@@ -7,7 +7,7 @@ pub mod options;
 
 use colors::*;
 use display::*;
-use game_structures::{map, GameState};
+use game_structures::{map, GameState, Entity, NonPlayerCharacter, Point};
 use options::*;
 
 use game_structures::map::MapElement;
@@ -42,6 +42,28 @@ fn main() -> Result<()> {
         gs.set_element_on_map(i, 30, map::walls::Wall::new("__EW").to_box())
             .unwrap();
     }
+    gs.entities.push(
+        Entity::NonPlayerCharacter(
+            NonPlayerCharacter::new(
+                Point {
+                    x: 12,
+                    y: 12,
+                },
+                'P',
+                [
+                    String::from(" A random peasant   "),
+                    String::from("passing by.         "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                    String::from("                    "),
+                ],
+            )
+        )
+    );
 
     gs.set_element_on_map(24, 2, map::walls::Wall::new("_S_W").to_box())
         .unwrap();
