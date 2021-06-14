@@ -22,16 +22,22 @@ use crossterm::style::{Color, SetBackgroundColor};
 use crossterm::terminal::ClearType;
 use crossterm::{cursor, event, execute, terminal, Result};
 
-const DISPLAY_CAVERN_GENERATOR: bool = true;
+const DISPLAY_CAVERN_GENERATOR: bool = false;
 
 fn main() -> Result<()> {
     if DISPLAY_CAVERN_GENERATOR { 
-        crate::level_generators::cavern_generator::display::display_grid( 
-            crate::level_generators::cavern_generator::generate_cavern(0, 0.5, 9) 
-        )?; 
-        loop{};
-        #[allow(unreachable_code)]
-        Ok(()) 
+        let seed = 0u64;
+        let cavern_width = 256u16;
+        let cavern_height = 96u16;
+        let p_filled: f64 = 0.52;
+        let nb_iterations: u32 = 15;
+        let name_extension: &str = "rules_0_with_filling_and_cutting";
+        
+        let (grid, claws) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
+
+        crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws)?;
+
+        Ok(())
     } else {
 
     let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
