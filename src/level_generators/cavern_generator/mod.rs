@@ -176,7 +176,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                 cc_list_aux[0][0].0 += 1;
                 cc_list_aux.push(Vec::new());
                 cc_bd_aux.push(Vec::new());
-                explore(&grid, cc_grid, &mut cc_list_aux, &mut cc_bd_aux, cc_aux, i, j);
+                explore(&grid, cc_grid, &mut cc_list_aux, &mut cc_bd_aux, cc_aux, cell.0, cell.1);
                 if cc_list_aux[cc_aux].len() <= 12 {
                     println!("didn't succeed with this claw");
                     for cell in cc_list[cc].iter() {
@@ -187,6 +187,17 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                     };
                     break 'checking_split
                 }
+            }
+
+            if cc_list_aux[0][0].0 <= 1 {
+                println!("didn't succeed with this claw");
+                for cell in cc_list[cc].iter() {
+                    cc_grid[cell.0][cell.1] = cc
+                };
+                for cell in modifs.iter() {
+                    grid[cell.0][cell.1] = EMPTY
+                };
+                break 'checking_split
             }
 
             for cell in cc_list[cc].iter() {
