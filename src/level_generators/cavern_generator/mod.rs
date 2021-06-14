@@ -108,20 +108,19 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
 -> bool {
     // On découpe les grandes composantes sous reserve de conserver des composantes assez grande après la coupe.
     let mut claws_aux: Vec<((usize, usize), (usize, usize))> = Vec::new();
-    for bd in cc_bd.iter().skip(1) {
-        let len = bd.len();
-        for _ in 0..nb_try {
-            let i = random_generator.gen_range(0..len);
-            let (x1, y1) = (bd[i].0, bd[i].1);
-            let j = random_generator.gen_range(0..len);
-            let (x2, y2) = (bd[j].0, bd[j].1);
-            
-            let ((x1, y1), (x2, y2)) = claw(&grid, cv_width, cv_height, (x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
-            let d = dist1((x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
+    let bd = &cc_bd[cc];
+    let len = bd.len();
+    for _ in 0..nb_try {
+        let i = random_generator.gen_range(0..len);
+        let (x1, y1) = (bd[i].0, bd[i].1);
+        let j = random_generator.gen_range(0..len);
+        let (x2, y2) = (bd[j].0, bd[j].1);
+        
+        let ((x1, y1), (x2, y2)) = claw(&grid, cv_width, cv_height, (x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
+        let d = dist1((x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
 
-            if d < 5 && d > 0 {
-                claws_aux.push( ((x1 as usize, y1 as usize), (x2 as usize, y2 as usize)) )
-            }
+        if d < 5 && d > 0 {
+            claws_aux.push( ((x1 as usize, y1 as usize), (x2 as usize, y2 as usize)) )
         }
     };
     claws_aux.dedup();
