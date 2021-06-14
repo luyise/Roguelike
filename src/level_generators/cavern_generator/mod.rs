@@ -187,29 +187,29 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                     break 'checking_split
                 }
             }
+        };
 
-            if cc_list_aux[0][0].0 <= 1 {
-                println!("didn't succeed with this claw");
-                for cell in cc_list[cc].iter() {
-                    cc_grid[cell.0][cell.1] = cc
-                };
-                for cell in modifs.iter() {
-                    grid[cell.0][cell.1] = EMPTY
-                };
-                break 'checking_split
-            }
-
+        if cc_list_aux[0][0].0 <= 1 {
+            println!("didn't succeed with this claw");
             for cell in cc_list[cc].iter() {
-                cc_grid[cell.0][cell.1] = 0
-            };
-            for cell in cc_list_aux[1].iter() {
                 cc_grid[cell.0][cell.1] = cc
             };
-            cc_list[cc] = cc_list_aux[1].clone();
-            println!("Succeed at cutting with this claw!");
-            claws.push(*claw);
-            return true
+            for cell in modifs.iter() {
+                grid[cell.0][cell.1] = EMPTY
+            };
+            return false
         }
+
+        for cell in cc_list[cc].iter() {
+            cc_grid[cell.0][cell.1] = 0
+        };
+        for cell in cc_list_aux[1].iter() {
+            cc_grid[cell.0][cell.1] = cc
+        };
+        cc_list[cc] = cc_list_aux[1].clone();
+        println!("Succeed at cutting with this claw!");
+        claws.push(*claw);
+        return true
     };
     
     println!("didn't suceed at cutting {}-th component", cc);
