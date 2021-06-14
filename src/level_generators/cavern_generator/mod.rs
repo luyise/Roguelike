@@ -133,8 +133,8 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
 
     println!("found {} claws:", claws_aux.len());
     for claw in claws_aux.iter() {
-        println!("trying to cut with ({}, {}), ({}, {}) at distance {}", 
-            claw.0.0, claw.0.1, claw.1.0, claw.1.1, dist1((claw.0.0 as i64, claw.0.1 as i64), (claw.1.0 as i64, claw.1.1 as i64)));
+        println!("trying to cut {}-th cc with ({}, {}), ({}, {}) at distance {}", 
+            cc, claw.0.0, claw.0.1, claw.1.0, claw.1.1, dist1((claw.0.0 as i64, claw.0.1 as i64), (claw.1.0 as i64, claw.1.1 as i64)));
         
         let mut modifs: Vec<(usize, usize)> = Vec::new();
 
@@ -189,6 +189,9 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                 }
             }
 
+            for cell in cc_list[cc].iter() {
+                cc_grid[cell.0][cell.1] = 0
+            };
             for cell in cc_list_aux[1].iter() {
                 cc_grid[cell.0][cell.1] = cc
             };
