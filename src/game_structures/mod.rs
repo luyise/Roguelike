@@ -39,12 +39,20 @@ pub struct NonPlayerCharacter {
 }
 
 impl NonPlayerCharacter {
+    pub fn new(pos: Point, sprite: char, info: [String; 9]) -> Self {
+        Self {
+            pos,
+            sprite,
+            info,
+        }
+    }
+
     pub fn save(&self, f: &mut File) -> std::io::Result<usize> {
         f.write(b"\t pos:\n")?;
         self.pos.save(f)?;
-        let mut s = String::from("\tsprite: ");
+        let mut s = String::from("\tsprite: '");
         s.push(self.sprite);
-        s.push_str("\n");
+        s.push_str("'\n");
         f.write(s.as_bytes())?;
         f.write(b"\t info: [\n")?;
         for i in self.info.iter() {

@@ -110,9 +110,9 @@ impl Obstacle {
         f.write(self.state.as_bytes())?;
         f.write(b"\"\n\tpos:\n")?;
         self.pos.save(f)?;
-        let mut s = String::from("\tsprite: ");
+        let mut s = String::from("\tsprite: '");
         s.push(self.sprite);
-        s.push_str("\n");
+        s.push_str("'\n");
         f.write(s.as_bytes())?;
         f.write(b"\t info: [\n")?;
         for i in self.info.iter() {
