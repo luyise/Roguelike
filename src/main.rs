@@ -22,7 +22,7 @@ use crossterm::style::{Color, SetBackgroundColor};
 use crossterm::terminal::ClearType;
 use crossterm::{cursor, event, execute, terminal, Result};
 
-const DISPLAY_CAVERN_GENERATOR: bool = false;
+const DISPLAY_CAVERN_GENERATOR: bool = true;
 
 fn main() -> Result<()> {
     if DISPLAY_CAVERN_GENERATOR { 

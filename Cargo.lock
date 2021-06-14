@@ -40,6 +40,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dmsort"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4699f5cb7678f099b747ffdc1e6ce6cdc42579e29d28315aa715b9fd10324fc"
+
+[[package]]
 name = "getrandom"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -199,6 +205,7 @@ name = "roguelike"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "dmsort",
  "rand",
 ]
 
