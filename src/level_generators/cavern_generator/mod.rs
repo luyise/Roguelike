@@ -8,7 +8,7 @@ const FILLED: bool = true;
 const EMPTY: bool = false;
 
 pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_filled: f64, n_iterations: u32) 
--> (Vec<Vec<bool>>, Vec<((usize, usize), (usize, usize))>) {
+-> (Vec<Vec<bool>>, Vec<((usize, usize), (usize, usize))>, Vec<Vec<bool>>) {
 
     let mut grid: Vec<Vec<bool>> = 
         vec![vec![false; cv_height]; cv_width];
@@ -48,13 +48,10 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     let mut cc_list: Vec<Vec<(usize,usize)>> = vec![vec![(0,0)]];
     // la cc-ème case de cc_bd contient la frontière de la cc-ème compoante connexe du graphe
     let mut cc_bd: Vec<Vec<(usize, usize)>> = vec![vec![]];
-    // i, j sont incrémentés lorsqu'on cherche une nouvelle composante connexe.
-    // let mut i: usize = 0;
-    // let mut j: usize = 0;
     // cc est numéro de la composante connexe en cours de traitement, 0 est réservé pour les cases non traitées!
     let mut cc: usize = 0;
     // Nombre d'essais maximum à éffectuer pour découper une composante connexe
-    let nb_try = 100;
+    let nb_try = 200;
     // On retient les pinces trouvées qui ont permis de scinder les composantes connexes trop grandes
     let mut claws: Vec<((usize, usize), (usize, usize))> = Vec::new();
 
@@ -86,21 +83,61 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         }
     };
 
-    // // On injecte les petites composantes (- de 12 éléments)
-    // for cc in cc_list.iter().skip(1) {
-    //     if cc.len() <= 12 {
-    //         for cell in cc.iter() {
-    //             grid[cell.0][cell.1] = FILLED
-    //         }
-    //     }
-    // };
-    // for bd in cc_bd.iter_mut().skip(1) {
-    //     bd.dedup()
-    // };
-
     claws.dedup();
+
+    // On dédouble la grille en taille
+    let mut sd_grid: Vec<Vec<bool>> = vec![vec![false; cv_height*2]; cv_width*2];
+    for x in 0..cv_width {
+        for y in 0..cv_height {
+            sd_grid[2*x][2*y] = grid[x][y];
+            sd_grid[2*x + 1][2*y] = grid[x][y];
+            sd_grid[2*x][2*y + 1] = grid[x][y];
+            sd_grid[2*x + 1][2*y + 1] = grid[x][y]
+        }
+    };
+
+    // Puis on réeffectue une itération de l'automate cellulaire pour addoucir les coins formés par l'opération qui précède
+    let nb = neighbors_grid(2*cv_width, 2*cv_height, &sd_grid);
+    for i in 1..(2*cv_width-1) {
+        for j in 1..(2*cv_height-1) {
+            if sd_grid[i][j] && nb[i][j] < 4 { // /!\ Règles standards : < 4, rules_4 : <= 4
+                sd_grid[i][j] = EMPTY
+            } else if nb[i][j] >= 5 { // /!\ Règles standards : >= 5, rules_4 : >= 6
+                sd_grid[i][j] = FILLED
+            }
+        }
+    };
+
+    // Ensuite on calcule à nouveau les composantes connexes de la grille étendue.
+    let mut cc_grid: Vec<Vec<usize>> = vec![vec![0; 2*cv_height as usize]; 2*cv_width as usize];
+    // la première composante de la première case de cc_list contient le nombre de composantes connexes, les cases suivantes contiennent la iste des cases d'un composante donnée
+    let mut cc_list: Vec<Vec<(usize,usize)>> = vec![vec![(0,0)]];
+    // la cc-ème case de cc_bd contient la frontière de la cc-ème compoante connexe du graphe
+    let mut cc_bd: Vec<Vec<(usize, usize)>> = vec![vec![]];
+    // cc est numéro de la composante connexe en cours de traitement, 0 est réservé pour les cases non traitées!
+    let mut cc: usize = 0;
+    // On a plus besoin de repartir de (0, 0) pour cherche les composantes car on ne fait pas d'opération sur la carte, donc on stocke la position (i, j) à laquelle on cherche une
+    // nouvelle composante connexe
+    let mut i = 0;
+    let mut j = 0;
+
+    while let Some((x, y)) = find_new(&sd_grid, &mut cc_grid, 2*cv_width, 2*cv_height, i, j) {
+        // println!("x: {}, y: {}", x, y);
+        cc += 1;
+        cc_list[0][0].0 += 1;
+        cc_list.push(Vec::new());
+        cc_bd.push(Vec::new());
+        i = x;
+        j = y;
+        explore(&sd_grid, &mut cc_grid, &mut cc_list, &mut cc_bd, cc, x, y);
+    }
+    println!("{} components found", cc);
+    let mut linked: Vec<Vec<bool>> = vec![vec![false; cc]; cc];
+    for i in 0..cc+1 {
+        linked[i][i] = true
+    };
         
-    (grid, claws)
+    (grid, claws, sd_grid)
 }
 
 fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (usize, usize))>, grid: &mut Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, 
@@ -117,23 +154,23 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
         let (x2, y2) = (bd[j].0, bd[j].1);
         
         let ((x1, y1), (x2, y2)) = claw(&grid, cv_width, cv_height, (x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
-        let d = dist1((x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
+        let d = dist2_sqr((x1 as i64, y1 as i64), (x2 as i64, y2 as i64));
 
-        if d < 5 && d > 0 {
+        if d < 25 && d > 0 {
             claws_aux.push( ((x1 as usize, y1 as usize), (x2 as usize, y2 as usize)) )
         }
     };
     claws_aux.dedup();
     fn cmp_by_dist(a: &((usize, usize), (usize, usize)), b: &((usize, usize), (usize, usize))) -> std::cmp::Ordering {
         let (a0x, a0y) = a.0; let (a1x, a1y) = a.1; let (b0x, b0y) = b.0; let (b1x, b1y) = b.1;
-        dist1((a0x as i64, a0y as i64), (a1x as i64, a1y as i64)).cmp(&dist1((b0x as i64, b0y as i64), (b1x as i64, b1y as i64)))
+        dist2_sqr((a0x as i64, a0y as i64), (a1x as i64, a1y as i64)).cmp(&dist2_sqr((b0x as i64, b0y as i64), (b1x as i64, b1y as i64)))
     }
     sort_by(&mut claws_aux, cmp_by_dist);
 
-    println!("found {} claws:", claws_aux.len());
-    for claw in claws_aux.iter() {
-        println!("trying to cut {}-th cc with ({}, {}), ({}, {}) at distance {}", 
-            cc, claw.0.0, claw.0.1, claw.1.0, claw.1.1, dist1((claw.0.0 as i64, claw.0.1 as i64), (claw.1.0 as i64, claw.1.1 as i64)));
+    //println!("found {} claws:", claws_aux.len());
+    'trying_claws: for claw in claws_aux.iter() {
+        //println!("trying to cut {}-th cc with ({}, {}), ({}, {}) at distance {}", 
+        //    cc, claw.0.0, claw.0.1, claw.1.0, claw.1.1, dist2_sqr((claw.0.0 as i64, claw.0.1 as i64), (claw.1.0 as i64, claw.1.1 as i64)));
         
         let mut modifs: Vec<(usize, usize)> = Vec::new();
 
@@ -161,6 +198,20 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
             }
         };
 
+        let mut cutted_wrong_component = false;
+        for cell in modifs.iter() {
+            if cc_grid[cell.0][cell.1] != cc {
+                cutted_wrong_component = true
+            }
+        };
+        if cutted_wrong_component {
+            for cell in modifs.iter() {
+                grid[cell.0][cell.1] = EMPTY
+            };
+            //println!("oups, cutted wrong component! aborting this attempt");
+            continue 'trying_claws
+        };
+
         // On vérifie que l'on a pas formé des composantes trop petites.
         for cell in cc_list[cc].iter() {
             cc_grid[cell.0][cell.1] = 0
@@ -169,7 +220,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
         let mut cc_list_aux: Vec<Vec<(usize,usize)>> = vec![vec![(0,0)]];
         let mut cc_bd_aux: Vec<Vec<(usize, usize)>> = vec![vec![]];
 
-        'checking_split: for cell in cc_list[cc].iter() {
+        for cell in cc_list[cc].iter() {
             if cc_grid[cell.0][cell.1] == 0 && grid[cell.0][cell.1] == EMPTY {
                 cc_aux += 1;
                 cc_list_aux[0][0].0 += 1;
@@ -177,17 +228,28 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                 cc_bd_aux.push(Vec::new());
                 explore(&grid, cc_grid, &mut cc_list_aux, &mut cc_bd_aux, cc_aux, cell.0, cell.1);
                 if cc_list_aux[cc_aux].len() <= 12 {
-                    println!("didn't succeed with this claw");
+                    //println!("didn't succeed with this claw");
                     for cell in cc_list[cc].iter() {
                         cc_grid[cell.0][cell.1] = cc
                     };
                     for cell in modifs.iter() {
                         grid[cell.0][cell.1] = EMPTY
                     };
-                    break 'checking_split
+                    continue 'trying_claws
                 }
             }
         };
+
+        // if cc_list_aux[0][0].0 <= 1 {
+        //     println!("didn't succeed with this claw");
+        //     for cell in cc_list[cc].iter() {
+        //         cc_grid[cell.0][cell.1] = cc
+        //     };
+        //     for cell in modifs.iter() {
+        //         grid[cell.0][cell.1] = EMPTY
+        //     };
+        //     continue 'trying_claws
+        // }
 
         for cell in cc_list[cc].iter() {
             cc_grid[cell.0][cell.1] = 0
@@ -196,17 +258,19 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
             cc_grid[cell.0][cell.1] = cc
         };
         cc_list[cc] = cc_list_aux[1].clone();
-        println!("Succeed at cutting with this claw!");
+        cc_bd[cc] = cc_bd_aux[1].clone();
+        //println!("Succeed at cutting with this claw!");
+        //println!("Cutted into {} parts", cc_list_aux[0][0].0);
         claws.push(*claw);
         return true
     };
     
-    println!("didn't suceed at cutting {}-th component", cc);
+    //println!("didn't suceed at cutting {}-th component", cc);
     false
 }
 
 fn claw(grid: &Vec<Vec<bool>>, cv_width: usize, cv_height: usize, (x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> ((i64, i64), (i64, i64)) {
-    let d = dist1((x1, y1), (x2, y2));
+    let d = dist2_sqr((x1, y1), (x2, y2));
     for dx1 in (-1)..=1 {
         let nx1 = x1 + dx1;
         for dy1 in (-1)..=1 {
@@ -219,7 +283,8 @@ fn claw(grid: &Vec<Vec<bool>>, cv_width: usize, cv_height: usize, (x1, y1): (i64
                         let ny2 = y2 + dy2;
                         if nx2 >= 0 && nx2 < cv_width as i64 && ny2 >= 0 && ny2 < cv_height as i64
                         && grid[nx2 as usize][ny2 as usize] == FILLED {
-                            let d_try = dist1((nx1, ny1), (nx2, ny2));
+                            //let d_try = dist1((nx1, ny1), (nx2, ny2));
+                            let d_try = dist2_sqr((nx1, ny1), (nx2, ny2));
                             if d_try < d {
                                 return claw(grid, cv_width, cv_height, (nx1, ny1), (nx2, ny2))
                             }
@@ -233,8 +298,11 @@ fn claw(grid: &Vec<Vec<bool>>, cv_width: usize, cv_height: usize, (x1, y1): (i64
     ((x1, y1), (x2, y2))
 }
 
-fn dist1((x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> i64 {
+fn _dist1((x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> i64 {
     (x2 - x1).abs() + (y2 - y1).abs()
+}
+fn dist2_sqr((x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> i64 {
+    (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)
 }
 
 // explore(cc, i, j) découvre récursivement la composante connexe cc.

@@ -33,9 +33,9 @@ fn main() -> Result<()> {
         let nb_iterations: u32 = 15;
         let name_extension: &str = "rules_0_with_filling_and_cutting";
         
-        let (grid, claws) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
+        let (grid, claws, sd_grid) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
 
-        crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws)?;
+        crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws, sd_grid)?;
 
         Ok(())
     } else {
