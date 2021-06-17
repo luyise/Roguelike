@@ -132,6 +132,8 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         explore(&sd_grid, &mut cc_grid, &mut cc_list, &mut cc_bd, cc, x, y);
     }
     println!("{} components found", cc);
+
+    // Puis on creuse des tunnels entre les différentes composantes connexes de la carte
     let mut linked: Vec<Vec<bool>> = vec![vec![false; cc]; cc];
     for i in 0..cc+1 {
         linked[i][i] = true
