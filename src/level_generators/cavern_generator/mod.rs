@@ -131,14 +131,102 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         j = y;
         explore(&sd_grid, &mut cc_grid, &mut cc_list, &mut cc_bd, cc, x, y);
     }
-    println!("{} components found", cc);
 
     // Puis on creuse des tunnels entre les différentes composantes connexes de la carte
-    let mut linked: Vec<Vec<bool>> = vec![vec![false; cc]; cc];
-    for i in 0..cc+1 {
+    let mut linked: Vec<Vec<bool>> = vec![vec![false; cc+1]; cc+1];
+    for i in 0..=cc {
         linked[i][i] = true
     };
-        
+
+    let mut to_supress: Vec<(usize, usize)> = Vec::new();
+    
+    for c in 1..=cc {
+        let mut dist: Vec<Vec<i64>> = vec![vec![-1; 2*cv_height]; 2*cv_width];
+        for cell in cc_list[c].iter() { dist[cell.0][cell.1] = 0 };
+        for cell in cc_bd[c].iter() { dist[cell.0][cell.1] = 1 };
+        let mut current: Vec<(usize, usize)> = cc_bd[c].clone();
+        let mut next: Vec<(usize, usize)> = Vec::new();
+        let mut d = 2;
+        let mut reached: Vec<(usize, usize)> = Vec::new();
+        let mut n_reached: usize = 0;
+
+        'reaching: while n_reached < 2 {
+            if current.is_empty() {
+                break 'reaching
+            }
+            for cell in current.iter() {
+                for (di, dj) in [(1, 0), (0, -1), (-1, 0), (0, 1)].iter() {
+                    let ni: i64 = cell.0 as i64 + di;
+                    let nj: i64 = cell.1 as i64 + dj;
+                    if 0 <= ni && ni < 2*(cv_width as i64)
+                    && 0 <= nj && nj < 2*(cv_height as i64)
+                    && dist[ni as usize][nj as usize] == -1 {
+                        next.push((ni as usize, nj as usize));
+                        dist[ni as usize][nj as usize] = d;
+                        // On regarde si on vient de tomber dans une nouvelle composante connexe
+                        if cc_grid[ni as usize][nj as usize] != c && sd_grid[ni as usize][nj as usize] == EMPTY {
+                            let mut new_cc = true;
+                            for cell_reached in reached.iter(){
+                                if cc_grid[cell_reached.0][cell_reached.1] == cc_grid[ni as usize][nj as usize] {
+                                    new_cc = false
+                                }
+                            };
+                            let c_reached = cc_grid[ni as usize][nj as usize];
+                            if new_cc && !linked[c][c_reached] {
+
+                                reached.push((ni as usize, nj as usize));
+                                
+                                linked[c][c_reached] = true;
+                                linked[c_reached][c] = true;
+
+                                n_reached += 1;
+                            
+                            } else if new_cc {
+                                n_reached += 1;
+
+                            }
+                            if n_reached >= 2 { break 'reaching }
+                        }
+                    }
+                }
+            };
+            current = next.clone();
+            next = Vec::new();
+            d += 1;
+
+            // On insert dans to_supress les cellules à supprimer pour relier les différentes composantes trouvées lors de l'exploration précédente.
+            for cell_reached in reached.iter() {
+                let mut i = cell_reached.0 as i64;
+                let mut j = cell_reached.1 as i64;
+                let mut current_dist = dist[i as usize][j as usize];
+                while cc_grid[i as usize][j as usize] != c {
+                    let mut di = -1i64;
+                    let mut dj = -1i64;
+                    while dist[(i + di) as usize][(j + dj) as usize] >= current_dist
+                                || dist[(i + di) as usize][(j + dj) as usize] == (-1) {
+                        if di < 1 {
+                            di += 1;
+                        } else if dj < 1 {
+                            di = -1;
+                            dj +=1;
+                        } else {
+                            panic!("didn't succend at digging a path from ({}, {}) to the {}-th component", cell_reached.0, cell_reached.1, c);
+                        };
+                    };
+                    i += di;
+                    to_supress.push((i as usize, j as usize));
+                    j += dj;
+                    to_supress.push((i as usize, j as usize));
+                    current_dist = dist[i as usize][j as usize];
+                }
+            }
+        }
+    };
+
+    for cell in to_supress.iter() {
+        sd_grid[cell.0][cell.1] = EMPTY
+    };
+
     (grid, claws, sd_grid)
 }
 
