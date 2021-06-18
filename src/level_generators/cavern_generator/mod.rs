@@ -55,7 +55,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     // On retient les pinces trouvées qui ont permis de scinder les composantes connexes trop grandes
     let mut claws: Vec<((usize, usize), (usize, usize))> = Vec::new();
 
-    while let Some((x, y)) = find_new(&grid, &mut cc_grid, cv_width, cv_height, 0, 0) {
+    while let Some((x, y)) = find_new(&grid, &mut cc_grid, cv_width, cv_height, 0, 0, 0) {
         // println!("x: {}, y: {}", x, y);
         cc += 1;
         cc_list[0][0].0 += 1;
@@ -121,7 +121,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     let mut i = 0;
     let mut j = 0;
 
-    while let Some((x, y)) = find_new(&sd_grid, &mut cc_grid, 2*cv_width, 2*cv_height, i, j) {
+    while let Some((x, y)) = find_new(&sd_grid, &mut cc_grid, 2*cv_width, 2*cv_height, i, j, 0) {
         // println!("x: {}, y: {}", x, y);
         cc += 1;
         cc_list[0][0].0 += 1;
@@ -132,7 +132,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         explore(&sd_grid, &mut cc_grid, &mut cc_list, &mut cc_bd, cc, x, y);
     }
 
-    // Puis on creuse des tunnels entre les différentes composantes connexes de la carte
+/*    // Puis on creuse des tunnels entre les différentes composantes connexes de la carte
     let mut linked: Vec<Vec<bool>> = vec![vec![false; cc+1]; cc+1];
     for i in 0..=cc {
         linked[i][i] = true
@@ -226,8 +226,100 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     for cell in to_supress.iter() {
         sd_grid[cell.0][cell.1] = EMPTY
     };
+*/
+
+    // Autre version pour creuser les tunnels
+    let new_width = cv_width * 2;
+    let new_height = cv_height * 2;
+    let mut distances = vec![vec![usize::MAX; new_height]; new_width];
+    if let Some(p) = find_new(&sd_grid, &distances, new_width, new_height, 1, 1, usize::MAX) {
+        update_distances(p.0, p.1, &mut distances, &sd_grid);
+    } else {
+        panic!("Empty map")
+    }
+    let mut c = 1;
+    while c < cc {
+        let mut d = 0;
+        let mut found = Vec::new();
+        while found.is_empty() {
+            for x in 1..(new_width - 1) {
+                for y in 1..(new_height - 1) {
+                    if distances[x][y] == d {
+                        if distances[x][y - 1] > d + 1 {
+                            distances[x][y - 1] = d + 1;
+                            if sd_grid[x][y - 1] == EMPTY {
+                                found.push((x, y - 1))
+                            }
+                        }
+                        if distances[x][y + 1] > d + 1 {
+                            distances[x][y + 1] = d + 1;
+                            if sd_grid[x][y + 1] == EMPTY {
+                                found.push((x, y + 1))
+                            }
+                        }
+                        if distances[x - 1][y] > d + 1 {
+                            distances[x - 1][y] = d + 1;
+                            if sd_grid[x - 1][y] == EMPTY {
+                                found.push((x - 1, y))
+                            }
+                        }
+                        if distances[x + 1][y] > d + 1 {
+                            distances[x + 1][y] = d + 1;
+                            if sd_grid[x + 1][y] == EMPTY {
+                                found.push((x + 1, y))
+                            }
+                        }
+                    }
+                }
+            }
+            d += 1;
+        }
+        for (x, y) in found {
+            if distances[x][y] > 0 {
+                c += 1;
+                let mut nx = x;
+                let mut ny = y;
+                let mut nd = d;
+                while nd > 0 {
+                    if distances[nx + 1][ny] < nd {
+                        nx += 1;
+                    } else if distances[nx - 1][ny] < nd  {
+                        nx -= 1;
+                    } else if distances[nx][ny + 1] < nd {
+                        ny += 1;
+                    } else if distances[nx][ny - 1] < nd  {
+                        ny -= 1;
+                    } else {
+                        panic!("Should not happen")
+                    }
+                    sd_grid[nx][ny] = EMPTY;
+                    nd = distances[nx][ny];
+                }
+                update_distances(x, y, &mut distances, &sd_grid);
+            }
+        }
+    }
 
     (grid, claws, sd_grid)
+}
+
+fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid: &Vec<Vec<bool>>) {
+    let mut to_compute = Vec::new();
+    distances[px][py] = 0;
+    to_compute.push((px, py));
+    while let Some(p) = to_compute.pop() {
+        for (dx, dy) in [(0, 1), (2, 1), (1, 0), (1, 2)].iter() {
+            let ny = p.1 + dy - 1;
+            let nx = p.0 + dx - 1;
+            if distances[nx][ny] > 0 && grid[nx][ny] == EMPTY {
+                distances[nx][ny] = 0;
+                to_compute.push((nx, ny))
+            }
+        }
+    }
+    if !to_compute.is_empty() {
+        panic!("Should not happen")
+    }
 }
 
 fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (usize, usize))>, grid: &mut Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, 
@@ -415,10 +507,10 @@ fn explore(grid: &Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, cc_list: &mut V
 
 }
 // cherche une nouvelle composante innexplorée à partir de la coordonnée (i,j)
-fn find_new(grid: &Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, cv_width: usize, cv_height: usize, i: usize, j: usize) -> Option<(usize, usize)> {
+fn find_new(grid: &Vec<Vec<bool>>, cc_grid: &Vec<Vec<usize>>, cv_width: usize, cv_height: usize, i: usize, j: usize, default_val: usize) -> Option<(usize, usize)> {
     let mut x = i;
     let mut y = j;
-    while grid[x][y] == FILLED || cc_grid[x][y] != 0 {
+    while grid[x][y] == FILLED || cc_grid[x][y] != default_val {
         if x < (cv_width-1) { x += 1 }
         else if y < (cv_height-1) { y += 1; x = 0 }
         else { return None }
