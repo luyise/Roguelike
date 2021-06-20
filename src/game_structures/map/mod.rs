@@ -73,6 +73,15 @@ impl Map {
                             ),
                             MapTile::DoorH => Box::new(
                                 door::Door::horizontal()
+                            ),
+                            MapTile::DoorD1 => Box::new(
+                                door::Door::from_char('\\')
+                            ),
+                            MapTile::DoorD2 => Box::new(
+                                door::Door::from_char('/')
+                            ),
+                            MapTile::Door => Box::new(
+                                door::Door::from_char('+')
                             )
                         }
                     )

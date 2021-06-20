@@ -3,7 +3,7 @@ use rand::rngs::StdRng;
 use rand::SeedableRng;
 use rand::Rng;
 use dmsort::sort_by;
-use super::maptile::MapTile;
+use super::maptile::{MapTile, get_char};
 
 //const FILLED: bool = true;
 //const EMPTY: bool = false;
@@ -239,6 +239,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         panic!("Empty map")
     }
     let mut c = 1;
+    let mut doors = Vec::new();
     while c < cc {
         let mut d = 0;
         let mut found = Vec::new();
@@ -276,12 +277,31 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
             d += 1;
         }
         for (x, y) in found {
-            if distances[x][y] > 0 {
+            if distances[x][y] == 1 {
+                panic!("This case should never happen")
+            } else if distances[x][y] > 0 {
                 c += 1;
                 let mut nx = x;
                 let mut ny = y;
-                let mut nd = d;
-                while nd > 0 {
+                let mut nd = distances[x][y];
+                if distances[nx + 1][ny] < nd {
+                    nx += 1;
+                } else if distances[nx - 1][ny] < nd  {
+                    nx -= 1;
+                } else if distances[nx][ny + 1] < nd {
+                    ny += 1;
+                } else if distances[nx][ny - 1] < nd  {
+                    ny -= 1;
+                } else {
+                    panic!("Should not happen")
+                }
+                if nd > 3 {
+                    doors.push((nx, ny));
+                }
+                nd = distances[nx][ny];
+                sd_grid[nx][ny] = MapTile::Empty;
+
+                while nd > 1 {
                     if distances[nx + 1][ny] < nd {
                         nx += 1;
                     } else if distances[nx - 1][ny] < nd  {
@@ -296,11 +316,36 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
                     sd_grid[nx][ny] = MapTile::Empty;
                     nd = distances[nx][ny];
                 }
+                doors.push((nx, ny));
                 update_distances(x, y, &mut distances, &sd_grid);
             }
         }
     }
-
+    for (dx, dy) in doors.iter() {
+        let mut c = 0;
+        if sd_grid[*dx - 1][*dy] == MapTile::Empty {
+            c |= 0b0001;
+        }
+        if sd_grid[*dx + 1][*dy] == MapTile::Empty {
+            c |= 0b0010;
+        }
+        if sd_grid[*dx][*dy - 1] == MapTile::Empty {
+            c |= 0b0100;
+        }
+        if sd_grid[*dx][*dy + 1] == MapTile::Empty {
+            c |= 0b1000;
+        }
+        sd_grid[*dx][*dy] = match c {
+            0b0011 => MapTile::DoorV,
+            0b0101 => MapTile::DoorD1,
+            0b0110 => MapTile::DoorD2,
+            0b1001 => MapTile::DoorD2,
+            0b1010 => MapTile::DoorD1,
+            0b1100 => MapTile::DoorH,
+            _ => MapTile::Door,
+        };
+    }
+// */
     (grid, claws, sd_grid)
 }
 

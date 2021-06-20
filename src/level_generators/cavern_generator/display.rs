@@ -2,7 +2,7 @@ use std::io::{Write};
 use std::fs::File;
 
 use crossterm::{Result};
-use super::MapTile;
+use super::{MapTile, get_char};
 
 pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64, 
     nb_iterations: u32, name_ext: &str, grid: Vec<Vec<MapTile>>, claws: Vec<((usize, usize), (usize, usize))>, sd_grid: Vec<Vec<MapTile>>) -> Result<()> {
@@ -56,13 +56,4 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64,
     }
 
     Ok(())
-}
-
-fn get_char(tile: MapTile) -> char {
-    match tile {
-        MapTile::Wall => '\u{2593}',
-        MapTile::Empty => ' ',
-        MapTile::DoorV => '|',
-        MapTile::DoorH => '-',
-    }
 }

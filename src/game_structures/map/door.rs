@@ -22,6 +22,12 @@ impl Door {
             sprite: '-',
         }
     }
+    pub fn from_char(sprite: char) -> Self {
+        Self {
+            opened: false,
+            sprite,
+        }
+    }
 }
 
 impl MapElement for Door {
