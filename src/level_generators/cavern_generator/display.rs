@@ -2,9 +2,10 @@ use std::io::{Write};
 use std::fs::File;
 
 use crossterm::{Result};
+use super::MapTile;
 
 pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64, 
-    nb_iterations: u32, name_ext: &str, grid: Vec<Vec<bool>>, claws: Vec<((usize, usize), (usize, usize))>, sd_grid: Vec<Vec<bool>>) -> Result<()> {
+    nb_iterations: u32, name_ext: &str, grid: Vec<Vec<MapTile>>, claws: Vec<((usize, usize), (usize, usize))>, sd_grid: Vec<Vec<MapTile>>) -> Result<()> {
 
     let file_name: String = 
         "cavern_generator".to_string()
@@ -34,7 +35,7 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64,
     for j in 0..cv_height {
         for i in 0..cv_width {
             let mut c =
-                if grid[i as usize][j as usize] { '\u{2593}' } else { ' ' };
+                if grid[i as usize][j as usize] == MapTile::Wall { '\u{2593}' } else { ' ' };
             'searching: for claw in claws.iter() {
                 if (i as usize, j as usize) == claw.0 || (i as usize, j as usize) == claw.1 {
                     c = '\u{2588}'; break 'searching
@@ -50,7 +51,7 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64,
     for j in 0..2*cv_height {
         for i in 0..2*cv_width {
             let c =
-                if sd_grid[i as usize][j as usize] { '\u{2593}' } else { ' ' };
+                if sd_grid[i as usize][j as usize] == MapTile::Wall { '\u{2593}' } else { ' ' };
             f.write(c.to_string().as_bytes()).unwrap();
         }
         f.write("\n".as_bytes()).unwrap();

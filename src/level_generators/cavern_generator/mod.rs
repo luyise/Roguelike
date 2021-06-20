@@ -7,35 +7,43 @@ use dmsort::sort_by;
 const FILLED: bool = true;
 const EMPTY: bool = false;
 
-pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_filled: f64, n_iterations: u32) 
--> (Vec<Vec<bool>>, Vec<((usize, usize), (usize, usize))>, Vec<Vec<bool>>) {
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum MapTile {
+    Wall = 0,
+    Empty = 1,
+    Door = 2,
+}
 
-    let mut grid: Vec<Vec<bool>> = 
-        vec![vec![false; cv_height]; cv_width];
+pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_filled: f64, n_iterations: u32) 
+-> (Vec<Vec<MapTile>>, Vec<((usize, usize), (usize, usize))>, Vec<Vec<MapTile>>) {
+
+    let mut grid: Vec<Vec<MapTile>> = 
+        vec![vec![MapTile::Empty; cv_height]; cv_width];
     let mut random_generator: StdRng = StdRng::seed_from_u64(seed_u64);
 
     for i in 0..cv_width {
         for j in 0..cv_height {
-            grid[i][j] = random_generator.gen_bool(p_filled);
+            grid[i][j] = if random_generator.gen_bool(p_filled) {MapTile::Wall} else {MapTile::Empty};
         }
     };
     for i in 0..cv_width {
-        grid[i][0] = FILLED;
-        grid[i][cv_height-1] = FILLED
+        grid[i][0] = MapTile::Wall;
+        grid[i][cv_height-1] = MapTile::Wall
     };
     for j in 0..cv_height {
-        grid[0][j] = FILLED;
-        grid[cv_width-1][j] = FILLED
+        grid[0][j] = MapTile::Wall;
+        grid[cv_width-1][j] = MapTile::Wall
     };
 
     for _ in 0..n_iterations {
         let nb = neighbors_grid(cv_width, cv_height, &grid);
         for i in 1..(cv_width-1) {
             for j in 1..(cv_height-1) {
-                if grid[i][j] && nb[i][j] < 4 { // /!\ Règles standards : < 4, rules_4 : <= 4
-                    grid[i][j] = EMPTY
+                if grid[i][j] == MapTile::Wall && nb[i][j] < 4 { // /!\ Règles standards : < 4, rules_4 : <= 4
+                    grid[i][j] = MapTile::Empty
                 } else if nb[i][j] >= 5 { // /!\ Règles standards : >= 5, rules_4 : >= 6
-                    grid[i][j] = FILLED
+                    grid[i][j] = MapTile::Wall
                 }
             }
         }
@@ -68,7 +76,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         let size = cc_list[cc].len();
         if size <= 12 {
             for cell in cc_list[cc].iter() {
-                grid[cell.0][cell.1] = FILLED
+                grid[cell.0][cell.1] = MapTile::Wall
             };
             cc -= 1;
             cc_list.pop();
@@ -86,7 +94,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     claws.dedup();
 
     // On dédouble la grille en taille
-    let mut sd_grid: Vec<Vec<bool>> = vec![vec![false; cv_height*2]; cv_width*2];
+    let mut sd_grid: Vec<Vec<MapTile>> = vec![vec![MapTile::Empty; cv_height*2]; cv_width*2];
     for x in 0..cv_width {
         for y in 0..cv_height {
             sd_grid[2*x][2*y] = grid[x][y];
@@ -100,10 +108,10 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     let nb = neighbors_grid(2*cv_width, 2*cv_height, &sd_grid);
     for i in 1..(2*cv_width-1) {
         for j in 1..(2*cv_height-1) {
-            if sd_grid[i][j] && nb[i][j] < 4 { // /!\ Règles standards : < 4, rules_4 : <= 4
-                sd_grid[i][j] = EMPTY
+            if sd_grid[i][j] == MapTile::Wall && nb[i][j] < 4 { // /!\ Règles standards : < 4, rules_4 : <= 4
+                sd_grid[i][j] = MapTile::Empty
             } else if nb[i][j] >= 5 { // /!\ Règles standards : >= 5, rules_4 : >= 6
-                sd_grid[i][j] = FILLED
+                sd_grid[i][j] = MapTile::Wall
             }
         }
     };
@@ -247,25 +255,25 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
                     if distances[x][y] == d {
                         if distances[x][y - 1] > d + 1 {
                             distances[x][y - 1] = d + 1;
-                            if sd_grid[x][y - 1] == EMPTY {
+                            if sd_grid[x][y - 1] == MapTile::Empty {
                                 found.push((x, y - 1))
                             }
                         }
                         if distances[x][y + 1] > d + 1 {
                             distances[x][y + 1] = d + 1;
-                            if sd_grid[x][y + 1] == EMPTY {
+                            if sd_grid[x][y + 1] == MapTile::Empty {
                                 found.push((x, y + 1))
                             }
                         }
                         if distances[x - 1][y] > d + 1 {
                             distances[x - 1][y] = d + 1;
-                            if sd_grid[x - 1][y] == EMPTY {
+                            if sd_grid[x - 1][y] == MapTile::Empty {
                                 found.push((x - 1, y))
                             }
                         }
                         if distances[x + 1][y] > d + 1 {
                             distances[x + 1][y] = d + 1;
-                            if sd_grid[x + 1][y] == EMPTY {
+                            if sd_grid[x + 1][y] == MapTile::Empty {
                                 found.push((x + 1, y))
                             }
                         }
@@ -292,7 +300,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
                     } else {
                         panic!("Should not happen")
                     }
-                    sd_grid[nx][ny] = EMPTY;
+                    sd_grid[nx][ny] = MapTile::Empty;
                     nd = distances[nx][ny];
                 }
                 update_distances(x, y, &mut distances, &sd_grid);
@@ -303,7 +311,7 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
     (grid, claws, sd_grid)
 }
 
-fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid: &Vec<Vec<bool>>) {
+fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid: &Vec<Vec<MapTile>>) {
     let mut to_compute = Vec::new();
     distances[px][py] = 0;
     to_compute.push((px, py));
@@ -311,7 +319,7 @@ fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid:
         for (dx, dy) in [(0, 1), (2, 1), (1, 0), (1, 2)].iter() {
             let ny = p.1 + dy - 1;
             let nx = p.0 + dx - 1;
-            if distances[nx][ny] > 0 && grid[nx][ny] == EMPTY {
+            if distances[nx][ny] > 0 && grid[nx][ny] == MapTile::Empty {
                 distances[nx][ny] = 0;
                 to_compute.push((nx, ny))
             }
@@ -322,7 +330,7 @@ fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid:
     }
 }
 
-fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (usize, usize))>, grid: &mut Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, 
+fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (usize, usize))>, grid: &mut Vec<Vec<MapTile>>, cc_grid: &mut Vec<Vec<usize>>, 
     cc_list: &mut Vec<Vec<(usize,usize)>>, cc_bd: &mut Vec<Vec<(usize, usize)>>, cc: usize, cv_width: usize, cv_height: usize, nb_try: usize)
 -> bool {
     // On découpe les grandes composantes sous reserve de conserver des composantes assez grande après la coupe.
@@ -365,8 +373,8 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
             } else if claw.1.0 < i {
                 i -= 1;
             };
-            if grid[i][j] == EMPTY {
-                grid[i][j] = FILLED;
+            if grid[i][j] == MapTile::Empty {
+                grid[i][j] = MapTile::Wall;
                 modifs.push((i, j))
             };
             if claw.1.1 > j {
@@ -374,8 +382,8 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
             } else if claw.1.1 < j {
                 j -= 1;
             };
-            if grid[i][j] == EMPTY {
-                grid[i][j] = FILLED;
+            if grid[i][j] == MapTile::Empty {
+                grid[i][j] = MapTile::Wall;
                 modifs.push((i,j))
             }
         };
@@ -388,7 +396,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
         };
         if cutted_wrong_component {
             for cell in modifs.iter() {
-                grid[cell.0][cell.1] = EMPTY
+                grid[cell.0][cell.1] = MapTile::Empty
             };
             //println!("oups, cutted wrong component! aborting this attempt");
             continue 'trying_claws
@@ -403,7 +411,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
         let mut cc_bd_aux: Vec<Vec<(usize, usize)>> = vec![vec![]];
 
         for cell in cc_list[cc].iter() {
-            if cc_grid[cell.0][cell.1] == 0 && grid[cell.0][cell.1] == EMPTY {
+            if cc_grid[cell.0][cell.1] == 0 && grid[cell.0][cell.1] == MapTile::Empty {
                 cc_aux += 1;
                 cc_list_aux[0][0].0 += 1;
                 cc_list_aux.push(Vec::new());
@@ -415,7 +423,7 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
                         cc_grid[cell.0][cell.1] = cc
                     };
                     for cell in modifs.iter() {
-                        grid[cell.0][cell.1] = EMPTY
+                        grid[cell.0][cell.1] = MapTile::Empty
                     };
                     continue 'trying_claws
                 }
@@ -451,20 +459,20 @@ fn try_to_cut(random_generator: &mut StdRng, claws: &mut Vec<((usize, usize), (u
     false
 }
 
-fn claw(grid: &Vec<Vec<bool>>, cv_width: usize, cv_height: usize, (x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> ((i64, i64), (i64, i64)) {
+fn claw(grid: &Vec<Vec<MapTile>>, cv_width: usize, cv_height: usize, (x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> ((i64, i64), (i64, i64)) {
     let d = dist2_sqr((x1, y1), (x2, y2));
     for dx1 in (-1)..=1 {
         let nx1 = x1 + dx1;
         for dy1 in (-1)..=1 {
             let ny1 = y1 + dy1;
             if nx1 >= 0 && nx1 < cv_width as i64 && ny1 >= 0 && ny1 < cv_height as i64
-            && grid[nx1 as usize][ny1 as usize] == FILLED {
+            && grid[nx1 as usize][ny1 as usize] == MapTile::Wall {
                 for dx2 in (-1)..=1 {
                     let nx2 = x2 + dx2;
                     for dy2 in (-1)..=1 {
                         let ny2 = y2 + dy2;
                         if nx2 >= 0 && nx2 < cv_width as i64 && ny2 >= 0 && ny2 < cv_height as i64
-                        && grid[nx2 as usize][ny2 as usize] == FILLED {
+                        && grid[nx2 as usize][ny2 as usize] == MapTile::Wall {
                             //let d_try = dist1((nx1, ny1), (nx2, ny2));
                             let d_try = dist2_sqr((nx1, ny1), (nx2, ny2));
                             if d_try < d {
@@ -488,14 +496,14 @@ fn dist2_sqr((x1, y1): (i64, i64), (x2, y2): (i64, i64)) -> i64 {
 }
 
 // explore(cc, i, j) découvre récursivement la composante connexe cc.
-fn explore(grid: &Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, cc_list: &mut Vec<Vec<(usize,usize)>>, cc_bd: &mut Vec<Vec<(usize, usize)>>, cc: usize, i: usize, j: usize){
+fn explore(grid: &Vec<Vec<MapTile>>, cc_grid: &mut Vec<Vec<usize>>, cc_list: &mut Vec<Vec<(usize,usize)>>, cc_bd: &mut Vec<Vec<(usize, usize)>>, cc: usize, i: usize, j: usize){
     if cc_grid[i][j] != 0 {
         panic!("Error with connex component finding!")
     } else {
         cc_grid[i][j] = cc;
         cc_list[cc].push((i,j));
         for (di, dj) in [(1,0), (0, -1), (-1, 0), (0, 1)].iter() {
-            if grid[(i as i64 + di) as usize][(j as i64 + dj) as usize] == EMPTY {
+            if grid[(i as i64 + di) as usize][(j as i64 + dj) as usize] == MapTile::Empty {
                 if cc_grid[(i as i64 + di) as usize][(j as i64 + dj) as usize] != cc {
                     explore(grid, cc_grid, cc_list, cc_bd, cc, (i as i64 + di) as usize, (j as i64 + dj) as usize)
                 }
@@ -507,10 +515,10 @@ fn explore(grid: &Vec<Vec<bool>>, cc_grid: &mut Vec<Vec<usize>>, cc_list: &mut V
 
 }
 // cherche une nouvelle composante innexplorée à partir de la coordonnée (i,j)
-fn find_new(grid: &Vec<Vec<bool>>, cc_grid: &Vec<Vec<usize>>, cv_width: usize, cv_height: usize, i: usize, j: usize, default_val: usize) -> Option<(usize, usize)> {
+fn find_new(grid: &Vec<Vec<MapTile>>, cc_grid: &Vec<Vec<usize>>, cv_width: usize, cv_height: usize, i: usize, j: usize, default_val: usize) -> Option<(usize, usize)> {
     let mut x = i;
     let mut y = j;
-    while grid[x][y] == FILLED || cc_grid[x][y] != default_val {
+    while grid[x][y] != MapTile::Empty || cc_grid[x][y] != default_val {
         if x < (cv_width-1) { x += 1 }
         else if y < (cv_height-1) { y += 1; x = 0 }
         else { return None }
@@ -518,13 +526,13 @@ fn find_new(grid: &Vec<Vec<bool>>, cc_grid: &Vec<Vec<usize>>, cv_width: usize, c
     Some((x, y))
 }
 
-fn neighbors_grid(cv_width: usize, cv_height: usize, grid: &Vec<Vec<bool>>) 
+fn neighbors_grid(cv_width: usize, cv_height: usize, grid: &Vec<Vec<MapTile>>) 
 -> Vec<Vec<u8>> {
     let mut ng = vec![vec![0; cv_height]; cv_width];
     
     for i in 1..(cv_width-1) {
         for j in 1..(cv_height-1) {
-            if grid[i][j] {
+            if grid[i][j] == MapTile::Wall {
                 ng[i-1][j-1] += 1; ng[i][j-1] += 1; ng[i+1][j-1] += 1;
                 ng[i-1][j  ] += 1;                  ng[i+1][j  ] += 1;
                 ng[i-1][j+1] += 1; ng[i][j+1] += 1; ng[i+1][j+1] += 1;
