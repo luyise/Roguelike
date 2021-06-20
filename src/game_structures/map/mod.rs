@@ -4,6 +4,7 @@ use std::boxed::Box;
 use super::ScreenState;
 use std::fs::File;
 use std::io::Write;
+use crate::level_generators::maptile::MapTile;
 
 pub mod door;
 pub mod floor;
@@ -42,6 +43,44 @@ impl Map {
             }
             data.push(line);
         }
+        Self {
+            height,
+            width,
+            data,
+        }
+    }
+
+    pub fn from_tile(data_raw: Vec<Vec<MapTile>>) -> Self {
+        let mut data = Vec::new();
+        let height = data_raw.len();
+        let width;
+        if height == 0 {
+            width = 0;
+        } else {
+            width = data_raw[0].len();
+            for row_raw in data_raw.iter() {
+                let mut row: Vec<Box<dyn MapElement>> = Vec::new();
+                for case in row_raw.iter() {
+                    row.push(match case {
+                            MapTile::Wall => Box::new(
+                                walls::Wall::full()
+                            ),
+                            MapTile::Empty => Box::new(
+                                floor::Floor::new()
+                            ),
+                            MapTile::DoorV => Box::new(
+                                door::Door::vertical()
+                            ),
+                            MapTile::DoorH => Box::new(
+                                door::Door::horizontal()
+                            )
+                        }
+                    )
+                }
+                data.push(row)
+            }
+        }
+
         Self {
             height,
             width,
