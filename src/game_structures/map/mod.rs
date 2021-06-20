@@ -1,5 +1,6 @@
 use crossterm::style::Color;
 use std::boxed::Box;
+use std::fmt;
 
 use super::ScreenState;
 use std::fs::File;
@@ -89,7 +90,6 @@ impl Map {
                 data.push(row)
             }
         }
-
         Self {
             height,
             width,
@@ -99,7 +99,7 @@ impl Map {
 
     pub fn get_element(&self, x: usize, y: usize) -> Result<&dyn MapElement, ()> {
         if x < self.width && y < self.height {
-            Ok(&*self.data[y][x])
+            Ok(&*self.data[x][y])
         } else {
             Err(())
         }
@@ -107,7 +107,7 @@ impl Map {
 
     pub fn get_element_as_mut(&mut self, x: usize, y: usize) -> Result<&mut dyn MapElement, ()> {
         if x < self.width && y < self.height {
-            Ok(&mut *self.data[y][x])
+            Ok(&mut *self.data[x][y])
         } else {
             Err(())
         }
@@ -120,7 +120,7 @@ impl Map {
         map_element: Box<dyn MapElement>,
     ) -> Result<(), ()> {
         if x < self.width && y < self.height {
-            self.data[y][x] = map_element;
+            self.data[x][y] = map_element;
             Ok(())
         } else {
             Err(())
@@ -136,7 +136,7 @@ impl Map {
     }
 
     fn get_char(&self, x: usize, y: usize) -> (char, Color) {
-        (self.data[y][x].get_char(), self.data[y][x].get_color())
+        (self.data[x][y].get_char(), self.data[x][y].get_color())
     }
 
     pub fn get_screen(&self, left: usize, top: usize) -> ScreenState {
@@ -151,5 +151,14 @@ impl Map {
 
     pub fn save(&self, file: &mut File) -> std::io::Result<usize> {
         file.write(b"Map saving not implemented")
+    }
+}
+
+impl fmt::Debug for Map {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Map")
+            .field("h", &self.height)
+            .field("w", &self.width)
+            .finish()
     }
 }

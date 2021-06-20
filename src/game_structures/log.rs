@@ -2,6 +2,7 @@ use crate::array;
 use crate::options::*;
 use crossterm::style::Color;
 
+#[derive(Debug)]
 pub struct Log {
     pub colors: [Color; DISP_HEIGHT as usize],
     pub messages: [String; DISP_HEIGHT as usize],

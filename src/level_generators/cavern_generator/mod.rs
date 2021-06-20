@@ -9,7 +9,7 @@ use super::maptile::{MapTile, get_char};
 //const EMPTY: bool = false;
 
 pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_filled: f64, n_iterations: u32) 
--> (Vec<Vec<MapTile>>, Vec<((usize, usize), (usize, usize))>, Vec<Vec<MapTile>>) {
+-> (Vec<Vec<MapTile>>, Vec<((usize, usize), (usize, usize))>, Vec<Vec<MapTile>>, usize, usize) {
 
     let mut grid: Vec<Vec<MapTile>> = 
         vec![vec![MapTile::Empty; cv_height]; cv_width];
@@ -346,7 +346,15 @@ pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_fille
         };
     }
 // */
-    (grid, claws, sd_grid)
+    for x in 1..(new_width - 1) {
+        for y in 1..(new_height - 1) {
+            if sd_grid[x][y] == MapTile::Empty {
+                println!("{} {} {:?}", x, y, sd_grid[x][y]);
+                return (grid, claws, sd_grid, x, y)
+            }
+        }
+    }
+    panic!("Haven't found an available starting tile")
 }
 
 fn update_distances(px: usize, py: usize, distances: &mut Vec<Vec<usize>>, grid: &Vec<Vec<MapTile>>) {

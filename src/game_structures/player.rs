@@ -2,14 +2,15 @@ use super::Point;
 use std::fs::File;
 use std::io::Write;
 
+#[derive(Debug)]
 pub struct Player {
     pub pos: Point,
     pub sprite: char,
 }
 impl Player {
-    pub fn new() -> Player {
+    pub fn new(x : usize, y: usize) -> Player {
         Player {
-            pos: Point { x: 4, y: 5 },
+            pos: Point { x: x as i16, y: y as i16 },
             sprite: '@',
         }
     }
