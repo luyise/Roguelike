@@ -4,15 +4,16 @@ use rand::SeedableRng;
 use rand::Rng;
 use dmsort::sort_by;
 
-const FILLED: bool = true;
-const EMPTY: bool = false;
+//const FILLED: bool = true;
+//const EMPTY: bool = false;
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum MapTile {
     Wall = 0,
     Empty = 1,
-    Door = 2,
+    DoorV = 2,
+    DoorH = 3,
 }
 
 pub fn generate_cavern(cv_width: usize, cv_height: usize, seed_u64: u64, p_filled: f64, n_iterations: u32) 

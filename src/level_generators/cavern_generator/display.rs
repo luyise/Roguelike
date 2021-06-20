@@ -34,8 +34,7 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64,
 
     for j in 0..cv_height {
         for i in 0..cv_width {
-            let mut c =
-                if grid[i as usize][j as usize] == MapTile::Wall { '\u{2593}' } else { ' ' };
+            let mut c = get_char(grid[i as usize][j as usize]);
             'searching: for claw in claws.iter() {
                 if (i as usize, j as usize) == claw.0 || (i as usize, j as usize) == claw.1 {
                     c = '\u{2588}'; break 'searching
@@ -50,12 +49,20 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64,
 
     for j in 0..2*cv_height {
         for i in 0..2*cv_width {
-            let c =
-                if sd_grid[i as usize][j as usize] == MapTile::Wall { '\u{2593}' } else { ' ' };
+            let c = get_char(sd_grid[i as usize][j as usize]);
             f.write(c.to_string().as_bytes()).unwrap();
         }
         f.write("\n".as_bytes()).unwrap();
     }
 
     Ok(())
+}
+
+fn get_char(tile: MapTile) -> char {
+    match tile {
+        MapTile::Wall => '\u{2593}',
+        MapTile::Empty => ' ',
+        MapTile::DoorV => '|',
+        MapTile::DoorH => '-',
+    }
 }
