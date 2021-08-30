@@ -8,11 +8,9 @@ pub mod level_generators;
 
 use colors::*;
 use display::*;
-use game_structures::{map, GameState, Entity, NonPlayerCharacter, Point};
+use game_structures::{map, GameState};
 use options::*;
 
-use game_structures::map::MapElement;
-use std::boxed::Box;
 use std::fs::File;
 use std::io::stdout;
 use std::time::Duration;
@@ -30,12 +28,12 @@ fn main() -> Result<()> {
     let cavern_height = 96u16;
     let p_filled: f64 = 0.52;
     let nb_iterations: u32 = 15;
-    let name_extension: &str = "rules_0_with_filling_and_cutting";
     
     let (grid, claws, sd_grid, start_x, start_y) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
 
     if DISPLAY_CAVERN_GENERATOR { 
         
+        let name_extension: &str = "rules_0_with_filling_and_cutting";
         crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws, sd_grid)?;
 
         Ok(())
