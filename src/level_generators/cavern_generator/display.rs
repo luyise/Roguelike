@@ -2,8 +2,10 @@ use std::io::{Write};
 use std::fs::File;
 
 use crossterm::{Result};
+use super::{MapTile, get_char};
 
-pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64, nb_iterations: u32, name_ext: &str, grid: Vec<Vec<bool>>, claws: Vec<((usize, usize), (usize, usize))>) -> Result<()> {
+pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64, 
+    nb_iterations: u32, name_ext: &str, grid: Vec<Vec<MapTile>>, claws: Vec<((usize, usize), (usize, usize))>, sd_grid: Vec<Vec<MapTile>>) -> Result<()> {
 
     let file_name: String = 
         "cavern_generator".to_string()
@@ -28,16 +30,26 @@ pub fn display_grid(cv_width: u16, cv_height: u16, seed: u64, p_filled: f64, nb_
     f.write(("empty cells are displayed using: ".to_string()+&' '.to_string()+&"\n".to_string()).as_bytes()).unwrap();
     f.write(("claws are displayed using: ".to_string()+&'\u{2588}'.to_string()+&"\n".to_string()).as_bytes()).unwrap();
     f.write(("\n".to_string()).as_bytes()).unwrap();
+    f.write(("Première grille, avec pinces, injection et coupures : \n\n".to_string()).as_bytes()).unwrap();
 
     for j in 0..cv_height {
         for i in 0..cv_width {
-            let mut c =
-                if grid[i as usize][j as usize] { '\u{2593}' } else { ' ' };
+            let mut c = get_char(grid[i as usize][j as usize]);
             'searching: for claw in claws.iter() {
                 if (i as usize, j as usize) == claw.0 || (i as usize, j as usize) == claw.1 {
                     c = '\u{2588}'; break 'searching
                 }
             }
+            f.write(c.to_string().as_bytes()).unwrap();
+        }
+        f.write("\n".as_bytes()).unwrap();
+    }
+
+    f.write(("\n Seconde grille, doublée en taille : \n\n".to_string()).as_bytes()).unwrap();
+
+    for j in 0..2*cv_height {
+        for i in 0..2*cv_width {
+            let c = get_char(sd_grid[i as usize][j as usize]);
             f.write(c.to_string().as_bytes()).unwrap();
         }
         f.write("\n".as_bytes()).unwrap();

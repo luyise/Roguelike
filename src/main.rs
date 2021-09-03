@@ -8,11 +8,9 @@ pub mod level_generators;
 
 use colors::*;
 use display::*;
-use game_structures::{map, GameState, Entity, NonPlayerCharacter, Point};
+use game_structures::{map, GameState};
 use options::*;
 
-use game_structures::map::MapElement;
-use std::boxed::Box;
 use std::fs::File;
 use std::io::stdout;
 use std::time::Duration;
@@ -25,28 +23,28 @@ use crossterm::{cursor, event, execute, terminal, Result};
 const DISPLAY_CAVERN_GENERATOR: bool = false;
 
 fn main() -> Result<()> {
-    if DISPLAY_CAVERN_GENERATOR { 
-        let seed = 0u64;
-        let cavern_width = 256u16;
-        let cavern_height = 96u16;
-        let p_filled: f64 = 0.52;
-        let nb_iterations: u32 = 15;
-        let name_extension: &str = "rules_0_with_filling_and_cutting";
-        
-        let (grid, claws) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
+    let seed = 0u64;
+    let cavern_width = 256u16;
+    let cavern_height = 96u16;
+    let p_filled: f64 = 0.52;
+    let nb_iterations: u32 = 15;
+    
+    let (grid, claws, sd_grid, start_x, start_y) = crate::level_generators::cavern_generator::generate_cavern(cavern_width as usize, cavern_height as usize, seed, p_filled, nb_iterations);
 
-        crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws)?;
+    if DISPLAY_CAVERN_GENERATOR { 
+        
+        let name_extension: &str = "rules_0_with_filling_and_cutting";
+        crate::level_generators::cavern_generator::display::display_grid( cavern_width, cavern_height, seed, p_filled, nb_iterations, name_extension, grid, claws, sd_grid)?;
 
         Ok(())
     } else {
 
-    let mut map = map::Map::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
-    map.set_element(24, 10, Box::new(map::door::Door::vertical()))
-        .unwrap();
+    let map = map::Map::from_tile(sd_grid);
 
-    let mut gs = GameState::new(map);
+    let mut gs = GameState::new(map, start_x, start_y);
     let mut screen_state = gs.make_screen_state();
 
+/*
     // - test, j'ajoute des obstacles
     gs.set_element_on_map(10, 10, map::obstacle::Obstacle::new().to_box())
         .unwrap();
@@ -99,9 +97,10 @@ fn main() -> Result<()> {
     gs.set_element_on_map(2, 30, map::walls::Wall::new("N_E_").to_box())
         .unwrap();
     // -
+*/
 
     // - test, j'ajoute un log
-    gs.push_log(String::from("This is an information!"), Color::Cyan);
+    gs.push_log(String::from("Press [l] to open the look table"), Color::Cyan);
     // -
 
     let (_cols, _rows) = terminal::size()?;

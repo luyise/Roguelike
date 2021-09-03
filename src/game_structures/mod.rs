@@ -16,7 +16,9 @@ use crossterm::style::Color;
 use std::convert::TryInto;
 use std::fs::File;
 use std::io::Write;
+use std::fmt;
 
+#[derive(Debug)]
 pub struct Point {
     pub x: i16,
     pub y: i16,
@@ -32,6 +34,7 @@ impl Point {
     }
 }
 
+#[derive(Debug)]
 pub struct NonPlayerCharacter {
     pos: Point,
     sprite: char,
@@ -64,6 +67,7 @@ impl NonPlayerCharacter {
     }
 }
 
+#[derive(Debug)]
 pub struct Ground {
     pos: Point,
     info: [String; 9],
@@ -83,6 +87,7 @@ impl Ground {
     }
 }
 
+#[derive(Debug)]
 pub enum Entity {
     NonPlayerCharacter(NonPlayerCharacter),
     Obstacle(Obstacle),
@@ -149,6 +154,13 @@ pub struct GameModifications {
     pub logs_changed: bool,
 }
 
+impl fmt::Debug for GameModifications {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GameModification")
+            .finish()
+    }
+}
+
 impl GameModifications {
     pub fn new() -> GameModifications {
         GameModifications {
@@ -177,6 +189,7 @@ impl ScreenState {
     }
 }
 
+#[derive(Debug)]
 pub struct GameState {
     pub player: Player,
     pub entities: Vec<Entity>,
@@ -189,11 +202,16 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(map: map::Map) -> GameState {
+    pub fn new(map: map::Map, x: usize, y: usize) -> GameState {
+        let mut sx = std::cmp::max(0, x as i16 - N_WIDTH as i16/2);
+        let mut sy = std::cmp::max(0, y as i16 - N_HEIGHT as i16/2);
+        sx = std::cmp::min(sx, map.get_width() as i16 - N_WIDTH as i16/2);
+        sy = std::cmp::min(sy, map.get_height() as i16 - N_HEIGHT as i16/2);
+        
         GameState {
-            player: Player::new(),
+            player: Player::new(x, y),
             entities: Vec::new(),
-            screen_pos: Point { x: 0, y: 0 },
+            screen_pos: Point { x: sx, y: sy},
             looking: false,
             map,
             modifications: GameModifications::new(),
@@ -281,7 +299,7 @@ impl GameState {
         let nx: i16 = x as i16 + dx;
         let ny: i16 = y as i16 + dy;
 
-        if nx < 0 || nx >= MAP_WIDTH as i16 || ny < 0 || ny >= MAP_HEIGHT as i16 {
+        if nx < 0 || nx >= self.map.get_width() as i16 || ny < 0 || ny >= self.map.get_height() as i16 {
             return;
         }
 
@@ -303,10 +321,10 @@ impl GameState {
 
         // Si le joueur pousse contre le bord de l'écran, on scroll si c'est possible.
         if (3 <= nx && nx - 3 < self.screen_pos.x.try_into().unwrap())
-            || (nx + 3 < MAP_WIDTH.try_into().unwrap()
+            || (nx + 3 < self.map.get_width().try_into().unwrap()
                 && nx + 3 >= (self.screen_pos.x + N_WIDTH as i16).try_into().unwrap())
             || (3 <= ny && ny - 3 < self.screen_pos.y.try_into().unwrap())
-            || (ny + 3 < MAP_HEIGHT.try_into().unwrap()
+            || (ny + 3 < self.map.get_height().try_into().unwrap()
                 && ny + 3 >= (self.screen_pos.y + N_HEIGHT as i16).try_into().unwrap())
         {
             self.screen_pos.x = (self.screen_pos.x as i16 + dx).try_into().unwrap();

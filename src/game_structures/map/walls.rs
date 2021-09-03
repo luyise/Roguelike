@@ -28,6 +28,12 @@ impl Wall {
             },
         }
     }
+
+    pub fn full() -> Self {
+        Self {
+            sprite: '\u{2593}'
+        }
+    }
 }
 
 impl MapElement for Wall {

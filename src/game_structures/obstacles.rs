@@ -6,6 +6,7 @@ use std::convert::TryInto;
 use std::fs::File;
 use std::io::Write;
 
+#[derive(Debug)]
 pub struct Obstacle {
     pub color: Color,
     pub state: String,
